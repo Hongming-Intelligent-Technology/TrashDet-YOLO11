@@ -8,7 +8,11 @@ def parse_args():
     parser = ArgumentParser(description="Generic YOLO11 training entrypoint")
     parser.add_argument("--weights", default="yolo11n.pt", help="Pretrained weight path or model yaml")
     parser.add_argument("--cfg", default="ultralytics/cfg/default.yaml", help="Ultralytics training cfg path")
-    parser.add_argument("--data", required=True, help="Dataset yaml path")
+    parser.add_argument(
+        "--data",
+        default="C:/Users/Lanyi/Desktop/trash/data.yaml",
+        help="Dataset yaml path",
+    )
     parser.add_argument("--optimizer", default="SGD", help="Optimizer name, e.g. SGD or AdamW")
     parser.add_argument("--epochs", type=int, default=200, help="Number of training epochs")
     parser.add_argument("--project", default="runs", help="Output root directory")
@@ -19,6 +23,9 @@ def parse_args():
     parser.add_argument("--imgsz", type=int, default=640, help="Input image size")
     parser.add_argument("--device", default=None, help="cuda:0, cpu, or leave empty for auto")
     parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
+    parser.add_argument("--lr0", type=float, default=None, help="Initial learning rate")
+    parser.add_argument("--lrf", type=float, default=None, help="Final LR factor (lr = lr0 * lrf)")
+    parser.add_argument("--freeze", type=int, default=None, help="Freeze first N layers for fine-tuning")
     return parser.parse_args()
 
 
@@ -41,5 +48,11 @@ if __name__ == "__main__":
     }
     if args.device:
         train_kwargs["device"] = args.device
+    if args.lr0 is not None:
+        train_kwargs["lr0"] = args.lr0
+    if args.lrf is not None:
+        train_kwargs["lrf"] = args.lrf
+    if args.freeze is not None:
+        train_kwargs["freeze"] = args.freeze
 
     model.train(**train_kwargs)
