@@ -142,14 +142,17 @@ yolo export model=runs/train/trash-yolo11n/weights/best.pt format=onnx
 ## Troubleshooting
 
 1. CUDA not found
+
 - Check torch CUDA build and driver versions.
 - Try --device cpu to verify baseline execution.
 
 2. OOM during training
+
 - Reduce --batch or --imgsz.
 - Use a smaller model such as yolo11n.pt.
 
 3. Dataset path errors
+
 - Ensure the YAML path exists and uses correct relative folders.
 - Confirm images/ and labels/ splits match YOLO naming.
 
