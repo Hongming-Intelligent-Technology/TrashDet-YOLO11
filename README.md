@@ -1,13 +1,14 @@
 # TrashDet-YOLO11
 
-TrashDet-YOLO11 is a YOLO11-based project for trash detection, built on top of the Ultralytics codebase.
-It keeps the full Ultralytics training/inference/export stack while providing a simple custom training entrypoint in train.py.
+TrashDet-YOLO11 is a YOLO11-based project for trash detection.
+It uses the [Ultralytics](https://github.com/ultralytics/ultralytics) package as a dependency and provides a simple custom training entrypoint in train.py.
 
 ## Overview
 
-- Base framework: Ultralytics YOLO
+- Base framework: Ultralytics YOLO (installed via pip, pinned in requirements.txt)
 - Main use case: custom trash detection model training and deployment
-- Included pretrained weights: yolo11n.pt, yolo11s.pt
+- Pretrained weights: yolo11n.pt / yolo11s.pt are downloaded automatically by Ultralytics
+- Trained weights: download best.pt from the GitHub Releases page
 - Custom script: train.py (argument-based training launcher)
 
 ## Requirements
@@ -18,23 +19,17 @@ It keeps the full Ultralytics training/inference/export stack while providing a 
 
 ## Installation
 
-### Option A: Local editable install (recommended for development)
-
 ```bash
 git clone https://github.com/HongyiHao-SXIT/TrashDet-YOLO11.git
 cd TrashDet-YOLO11
-pip install -e .
+pip install -r requirements.txt
 ```
 
-### Option B: Install with export extras
-
-```bash
-pip install -e ".[export]"
-```
+For ONNX/TensorRT export support, also run `pip install "ultralytics[export]==8.4.48"`.
 
 ## Dataset Preparation
 
-Prepare a YOLO-format dataset YAML file, for example:
+Edit data/trash.yaml (or provide your own YOLO-format dataset YAML), for example:
 
 ```yaml
 path: /path/to/dataset
@@ -68,14 +63,13 @@ dataset/
 train.py wraps YOLO training and exposes common knobs.
 
 ```bash
-python train.py --data /path/to/trash.yaml --weights yolo11n.pt --epochs 100 --imgsz 640 --batch 16 --name trash-yolo11n
+python train.py --data data/trash.yaml --weights yolo11n.pt --epochs 100 --imgsz 640 --batch 16 --name trash-yolo11n
 ```
 
 Common options:
 
 - --weights: pretrained .pt or model yaml (default yolo11n.pt)
-- --cfg: Ultralytics train config (default ultralytics/cfg/default.yaml)
-- --data: dataset yaml (required)
+- --data: dataset yaml (default data/trash.yaml)
 - --optimizer: SGD, AdamW, etc.
 - --epochs: training epochs
 - --project: output root directory (default runs)
@@ -124,20 +118,13 @@ Export ONNX:
 yolo export model=runs/train/trash-yolo11n/weights/best.pt format=onnx
 ```
 
-## Key Directories
+## Project Layout
 
-- ultralytics/: core framework code
 - train.py: custom training entrypoint
-- tests/: automated tests
-- docs/: documentation source
-- .github/workflows/: CI workflows
-- runs/: training outputs
-
-## CI and Dependency Automation
-
-- CI workflows are in .github/workflows/.
-- Dependabot configuration is in .github/dependabot.yml.
-- This repository uses grouped and rate-limited Dependabot updates to reduce PR noise.
+- data/trash.yaml: dataset config
+- assets/: demo and result images
+- requirements.txt: pinned dependencies
+- runs/: training outputs (not committed)
 
 ## Troubleshooting
 
@@ -158,8 +145,8 @@ yolo export model=runs/train/trash-yolo11n/weights/best.pt format=onnx
 
 ## Acknowledgments
 
-This project builds on Ultralytics YOLO and keeps compatibility with its training and deployment ecosystem.
+This project builds on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics).
 
 ## License
 
-This repository follows the same licensing terms as the project root LICENSE file.
+AGPL-3.0, following Ultralytics. See LICENSE.

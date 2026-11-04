@@ -7,12 +7,7 @@ from ultralytics import YOLO
 def parse_args():
     parser = ArgumentParser(description="Generic YOLO11 training entrypoint")
     parser.add_argument("--weights", default="yolo11n.pt", help="Pretrained weight path or model yaml")
-    parser.add_argument("--cfg", default="ultralytics/cfg/default.yaml", help="Ultralytics training cfg path")
-    parser.add_argument(
-        "--data",
-        default="C:/Users/Lanyi/Desktop/trash/data.yaml",
-        help="Dataset yaml path",
-    )
+    parser.add_argument("--data", default="data/trash.yaml", help="Dataset yaml path")
     parser.add_argument("--optimizer", default="SGD", help="Optimizer name, e.g. SGD or AdamW")
     parser.add_argument("--epochs", type=int, default=200, help="Number of training epochs")
     parser.add_argument("--project", default="runs", help="Output root directory")
@@ -34,7 +29,6 @@ if __name__ == "__main__":
     model = YOLO(str(Path(args.weights)))
 
     train_kwargs = {
-        "cfg": str(Path(args.cfg)),
         "data": str(Path(args.data)),
         "optimizer": args.optimizer,
         "epochs": args.epochs,

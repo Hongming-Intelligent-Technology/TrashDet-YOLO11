@@ -1,0 +1,8 @@
+# YOLO-format dataset config. Edit `path` to point at your dataset root.
+path: ../datasets/trash
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: trash
