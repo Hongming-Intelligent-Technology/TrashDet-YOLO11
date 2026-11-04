@@ -6,7 +6,7 @@ __pycache__/
 venv/
 
 # Training outputs and datasets
-runs/
+/runs/
 /datasets/
 data/**/images/
 data/**/labels/
@@ -16,9 +16,10 @@ data/**/labels/
 *.onnx
 *.engine
 !weights/*.pt
+!backend/model/runs/train/*/weights/best.pt
 !weights/*.onnx
 
 # OS / IDE
 .DS_Store
 .idea/
-.vscode/
+.vscode/*

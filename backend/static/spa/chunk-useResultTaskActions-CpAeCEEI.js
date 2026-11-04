@@ -1,0 +1,1 @@
+import{n as e,s as t}from"./app.js";async function n(n,r={}){let{confirmText:i=`确认删除该检测结果吗？`,successMessage:a=`删除成功`,errorMessage:o=`删除失败`,onSuccess:s}=r;if(!window.confirm(i))return!1;try{let r=await t(`/api/web/tasks/${n}/delete`,{});return e(r.message||a,`success`),s&&await s(r),!0}catch(t){return e(t.message||o,`error`),!1}}export{n as t};
