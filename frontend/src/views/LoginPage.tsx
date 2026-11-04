@@ -57,7 +57,7 @@ export default function LoginPage() {
           <p className="auth-kicker">Welcome Back</p>
           <h2>登录管理平台</h2>
           <p className="auth-desc">
-            实时查看垃圾识别结果、机器人状态和热点分析，继续你的 EcoGuard 管理流程。
+            实时查看垃圾识别结果、机器人状态和热点分析，继续你的 TrashDet 管理流程。
           </p>
         </aside>
 

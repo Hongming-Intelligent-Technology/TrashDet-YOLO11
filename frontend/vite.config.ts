@@ -23,16 +23,21 @@ export default defineConfig(({ command }) => ({
     outDir: '../backend/static/spa',
     emptyOutDir: true,
     assetsDir: '.',
-    cssCodeSplit: false,
+    // Each lazy-loaded page ships its own CSS; the entry CSS stays at app.css for spa.html.
+    cssCodeSplit: true,
+    // vendor-echarts (~530 kB, only pie + line charts registered) is loaded lazily by the two chart pages.
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         entryFileNames: 'app.js',
         chunkFileNames: 'chunk-[name]-[hash].js',
         manualChunks(id: string) {
-          if (!id.includes('node_modules')) {
+          // CSS from node_modules (e.g. leaflet.css) is bundled into the CSS output. Assigning it
+          // to a JS vendor chunk would make the entry import that whole chunk just for the CSS.
+          if (!id.includes('node_modules') || id.endsWith('.css')) {
             return
           }
-          if (id.includes('echarts')) {
+          if (id.includes('echarts') || id.includes('zrender')) {
             return 'vendor-echarts'
           }
           if (id.includes('leaflet')) {
@@ -44,8 +49,9 @@ export default defineConfig(({ command }) => ({
           return 'vendor'
         },
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-            return 'app.css'
+          const name = assetInfo.names?.[0] ?? ''
+          if (name.endsWith('.css')) {
+            return name === 'index.css' ? 'app.css' : 'chunk-[name]-[hash].css'
           }
           return 'asset-[name]-[hash][extname]'
         },

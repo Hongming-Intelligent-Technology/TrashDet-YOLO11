@@ -31,9 +31,9 @@ def ensure_bootstrap_admin_impl(app, db_obj, user_model, os_module=os, logger=No
         if has_user:
             return
 
-        username = os_module.getenv('ECOGUARD_ADMIN_USERNAME', 'admin').strip() or 'admin'
-        password = os_module.getenv('ECOGUARD_ADMIN_PASSWORD', '').strip()
-        security_code = os_module.getenv('ECOGUARD_ADMIN_SECURITY_CODE', '').strip()
+        username = os_module.getenv('TRASHDET_ADMIN_USERNAME', 'admin').strip() or 'admin'
+        password = os_module.getenv('TRASHDET_ADMIN_PASSWORD', '').strip()
+        security_code = os_module.getenv('TRASHDET_ADMIN_SECURITY_CODE', '').strip()
         generated = []
         if not password:
             password = secrets.token_urlsafe(12)
@@ -54,7 +54,7 @@ def ensure_bootstrap_admin_impl(app, db_obj, user_model, os_module=os, logger=No
             username,
         )
         if generated:
-            # Printed once so the operator can log in; set ECOGUARD_ADMIN_* to choose them instead.
+            # Printed once so the operator can log in; set TRASHDET_ADMIN_* to choose them instead.
             logger_obj.warning('Generated bootstrap admin credentials: %s', ' '.join(generated))
     except Exception:
         db_obj.session.rollback()

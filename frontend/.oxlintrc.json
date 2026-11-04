@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "oxc", "unicorn"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/react-in-jsx-scope": "off",
+
+    // React Compiler-oriented rules. This app doesn't use the compiler and relies on patterns these
+    // flag on purpose (latest-value refs, resetting state in effects), so they are off for now.
+    "react/refs": "off",
+    "react/set-state-in-effect": "off",
+    "react/purity": "off",
+    "react/memo-dependencies": "off",
+    "react/exhaustive-effect-dependencies": "off",
+
+    // Every .sort() here runs on a fresh copy ([...list].sort()), so mutation isn't a concern.
+    "unicorn/no-array-sort": "off"
+  },
+  "ignorePatterns": ["dist", "node_modules"]
+}

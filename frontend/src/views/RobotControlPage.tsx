@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import L from 'leaflet'
 import { errorMessage, getJson, postJson } from '../lib/api'
 import { escapeHtml } from '../lib/escape'
+import { pollWhileVisible } from '../lib/polling'
 import { pushFlash } from '../stores/session'
 
 interface RobotDetail {
@@ -112,9 +113,7 @@ export default function RobotControlPage() {
   }, [robotId, applyRobot])
 
   useEffect(() => {
-    loadRobot()
-    const pollTimer = window.setInterval(loadRobot, POLL_INTERVAL_MS)
-    return () => window.clearInterval(pollTimer)
+    return pollWhileVisible(loadRobot, POLL_INTERVAL_MS)
   }, [loadRobot])
 
   async function sendCommand(command: string, sourceText = '发送控制命令') {

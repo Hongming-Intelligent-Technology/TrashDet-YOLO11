@@ -285,26 +285,6 @@
   color: #184d42;
 }
 
-.self-tips:is(.scope-user-admin, .scope-user-admin *) {
-  border-radius: 10px;
-  padding: 10px;
-  border: 1px dashed rgba(27, 110, 88, 0.28);
-  background: rgba(246, 252, 249, 0.9);
-}
-
-.tip-title:is(.scope-user-admin, .scope-user-admin *) {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1a5b4d;
-  margin-bottom: 4px;
-}
-
-.self-tips p:is(.scope-user-admin, .scope-user-admin *) {
-  margin: 0;
-  font-size: 12px;
-  color: #4d766d;
-}
-
 .user-create:is(.scope-user-admin, .scope-user-admin *),
 .user-list:is(.scope-user-admin, .scope-user-admin *) {
   display: grid;
@@ -448,17 +428,6 @@
   display: grid;
   min-width: 0;
   gap: 4px;
-}
-
-.edit-inline-block:is(.scope-user-admin, .scope-user-admin *) {
-  display: grid;
-  gap: 4px;
-}
-
-.edit-input:is(.scope-user-admin, .scope-user-admin *) {
-  width: 100%;
-  min-height: 32px;
-  border-radius: 8px;
 }
 
 .user-avatar:is(.scope-user-admin, .scope-user-admin *) {

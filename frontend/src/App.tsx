@@ -35,7 +35,7 @@ function RouteGate({ meta, children }: { meta: RouteMeta; children: ReactNode })
   }, [hydrated])
 
   useEffect(() => {
-    document.title = `${meta.title || 'EcoGuard'} - TrashDet`
+    document.title = meta.title ? `${meta.title} - TrashDet` : 'TrashDet'
   }, [meta.title])
 
   if (!hydrated) {

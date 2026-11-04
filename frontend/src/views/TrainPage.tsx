@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { errorMessage, getJson, postForm } from '../lib/api'
 import { fieldUpdater } from '../lib/forms'
+import { pollWhileVisible } from '../lib/polling'
 import { pushFlash } from '../stores/session'
 
 interface TrainJob {
@@ -73,13 +74,11 @@ export default function TrainPage() {
 
   const datasetInputRef = useRef<HTMLInputElement>(null)
   const weightInputRef = useRef<HTMLInputElement>(null)
-  const pollingTimerRef = useRef<number | null>(null)
+  const stopPollingRef = useRef<(() => void) | null>(null)
 
   const stopPolling = useCallback(() => {
-    if (pollingTimerRef.current) {
-      window.clearInterval(pollingTimerRef.current)
-      pollingTimerRef.current = null
-    }
+    stopPollingRef.current?.()
+    stopPollingRef.current = null
   }, [])
 
   const fetchStatus = useCallback(async (jobId: string, showError = false) => {
@@ -106,9 +105,7 @@ export default function TrainPage() {
   const startPolling = useCallback((jobId: string) => {
     stopPolling()
     setPolling(true)
-    pollingTimerRef.current = window.setInterval(() => {
-      fetchStatus(jobId)
-    }, POLL_INTERVAL_MS)
+    stopPollingRef.current = pollWhileVisible(() => fetchStatus(jobId), POLL_INTERVAL_MS, { immediate: false })
   }, [fetchStatus, stopPolling])
 
   useEffect(() => {

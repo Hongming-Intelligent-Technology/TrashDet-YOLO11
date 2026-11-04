@@ -1,83 +1,38 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
 import L from 'leaflet'
 import { useLiveState } from '../hooks/useLiveState'
 import { errorMessage, getJson, postJson } from '../lib/api'
-import { escapeHtml } from '../lib/escape'
 import { focusMapToDenseRegion } from '../lib/mapFocus'
 import {
   MAP_PICK_POINT_LIMIT,
   formatCoordinateLines,
   normalizePointList,
   parseTaskGeometry,
-  polygonsOverlap,
   type LatLngPoint,
 } from '../lib/patrolGeometry'
+import { pollWhileVisible } from '../lib/polling'
 import { pushFlash } from '../stores/session'
+import { animateMarkerTo, drawDraftTask, drawPatrolTasks, stopMarkerAnimation } from './robotAdmin/mapLayers'
+import PatrolTaskPanel, { type TaskForm } from './robotAdmin/PatrolTaskPanel'
+import RobotProfilePanel from './robotAdmin/RobotProfilePanel'
+import {
+  buildRobotPopup,
+  findOverlappingAreas,
+  statusClass,
+  taskLabel,
+  type EditorMode,
+  type FeedbackType,
+  type PatrolTask,
+  type PickMode,
+  type Robot,
+} from './robotAdmin/shared'
+import { useRobotAddress } from './robotAdmin/useRobotAddress'
 import './RobotAdminPage.css'
-
-interface Robot {
-  id: number
-  device_id?: string | null
-  name?: string | null
-  status?: string | null
-  battery?: number | null
-  lat?: number | null
-  lng?: number | null
-}
-
-interface PatrolTask {
-  id: number
-  name?: string | null
-  status?: string | null
-  inspection_area?: LatLngPoint[]
-  planned_path?: LatLngPoint[]
-  created_at?: string | null
-}
-
-type EditorMode = 'robot' | 'task'
-type PickMode = 'none' | 'area' | 'path'
-type FeedbackType = 'info' | 'success' | 'warning' | 'error'
 
 const ROBOT_POLL_INTERVAL_MS = 500
 const TASK_POLL_INTERVAL_MS = 1000
-const MARKER_ANIMATION_MS = 420
 
-const ROBOT_STATUSES = ['ONLINE', 'OFFLINE', 'PAUSED', 'ERROR']
-const PATROL_STATUSES = [
-  { value: 'PLANNED', label: '待执行' },
-  { value: 'RUNNING', label: '执行中' },
-  { value: 'PAUSED', label: '已暂停' },
-  { value: 'DONE', label: '已完成' },
-  { value: 'CANCELLED', label: '已取消' },
-]
-
-const AREA_PLACEHOLDER = '每行一个点：\n30.123456,120.123456\n30.223456,120.223456\n30.323456,120.323456\n30.423456,120.423456'
-const PATH_PLACEHOLDER = '每行一个点：\n30.120000,120.120000\n30.220000,120.220000\n30.320000,120.320000\n30.420000,120.420000'
-
-function statusClass(status?: string | null) {
-  const token = String(status || 'unknown')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]/g, '-')
-  return `status-${token || 'unknown'}`
-}
-
-function buildRobotPopup(robot: Robot) {
-  return `<b>${escapeHtml(robot.name || '-')}</b><br>${escapeHtml(robot.device_id || '-')}`
-}
-
-function addressKeyOf(robot: Robot | null) {
-  if (!robot) return ''
-  const lat = Number(robot.lat)
-  const lng = Number(robot.lng)
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return ''
-  return `${lat.toFixed(5)},${lng.toFixed(5)}`
-}
-
-function taskLabel(task: PatrolTask | undefined) {
-  return task?.name || `任务#${task?.id}`
-}
+const EMPTY_TASK_FORM: TaskForm = { name: '', status: 'PAUSED', areaText: '', pathText: '' }
 
 export default function RobotAdminPage() {
   // --- Rendered state (with refs for imperative map/timer code where needed) ---
@@ -95,17 +50,10 @@ export default function RobotAdminPage() {
   const [name, setName] = useState('')
   const [robotEditName, setRobotEditName] = useState('')
   const [robotEditStatus, setRobotEditStatus] = useState('OFFLINE')
+  const [taskForm, setTaskForm] = useState<TaskForm>(EMPTY_TASK_FORM)
   const [taskLoading, setTaskLoading] = useState(false)
   const [taskSaving, setTaskSaving] = useState(false)
-  const [taskActionMessage, setTaskActionMessage] = useState('')
-  const [taskActionType, setTaskActionType] = useState<FeedbackType>('info')
-  const [taskName, setTaskName] = useState('')
-  const [taskStatus, setTaskStatus] = useState('PAUSED')
-  const [taskAreaText, setTaskAreaText] = useState('')
-  const [taskPathText, setTaskPathText] = useState('')
-  const [robotResolvedAddress, setRobotResolvedAddress] = useState('')
-  const [robotAddressLoading, setRobotAddressLoading] = useState(false)
-  const [robotAddressError, setRobotAddressError] = useState('')
+  const [taskFeedback, setTaskFeedback] = useState<{ message: string; type: FeedbackType }>({ message: '', type: 'info' })
 
   // --- Map objects and bookkeeping ---
   const mapElRef = useRef<HTMLDivElement>(null)
@@ -119,20 +67,16 @@ export default function RobotAdminPage() {
   const lastOverlapWarningKeyRef = useRef('')
   const robotListLoadingRef = useRef(false)
   const robotListPendingRef = useRef(false)
-  const addressCacheRef = useRef(new Map<string, string>())
-  const addressKeyRef = useRef('')
 
   const selectedRobot = robots.find((item) => String(item.id) === String(selectedRobotId)) || null
-  const selectedRobotAddressKey = addressKeyOf(selectedRobot)
-  addressKeyRef.current = selectedRobotAddressKey
+  const robotAddress = useRobotAddress(selectedRobot, editorVisible)
 
   function findSelectedRobot() {
     return robotsRef.current.find((item) => String(item.id) === String(selectedRobotIdRef.current)) || null
   }
 
   function setTaskActionFeedback(message: string, type: FeedbackType = 'info') {
-    setTaskActionMessage(String(message || '').trim())
-    setTaskActionType(type)
+    setTaskFeedback({ message: String(message || '').trim(), type })
   }
 
   function syncRobotEditorFromSelected() {
@@ -142,41 +86,30 @@ export default function RobotAdminPage() {
     setRobotEditStatus(robot.status || 'OFFLINE')
   }
 
+  function patchTaskForm(patch: Partial<TaskForm>) {
+    setTaskForm((form) => ({ ...form, ...patch }))
+  }
+
   function setDraftArea(points: LatLngPoint[]) {
     setTaskAreaPoints(points)
-    setTaskAreaText(formatCoordinateLines(points))
+    patchTaskForm({ areaText: formatCoordinateLines(points) })
   }
 
   function setDraftPath(points: LatLngPoint[]) {
     setTaskPathPoints(points)
-    setTaskPathText(formatCoordinateLines(points))
+    patchTaskForm({ pathText: formatCoordinateLines(points) })
   }
 
   function resetTaskForm() {
     setEditingTaskId(null)
-    setTaskName('')
-    setTaskStatus('PAUSED')
-    setTaskAreaText('')
-    setTaskPathText('')
+    setTaskForm(EMPTY_TASK_FORM)
     setTaskAreaPoints([])
     setTaskPathPoints([])
     setTaskPickMode('none')
   }
 
   function warnIfInspectionAreasOverlap(tasks: PatrolTask[]) {
-    const overlaps: string[] = []
-    for (let i = 0; i < tasks.length; i += 1) {
-      const areaA = normalizePointList(tasks[i]?.inspection_area || [])
-      if (areaA.length < 3) continue
-      for (let j = i + 1; j < tasks.length; j += 1) {
-        const areaB = normalizePointList(tasks[j]?.inspection_area || [])
-        if (areaB.length < 3) continue
-        if (polygonsOverlap(areaA, areaB)) {
-          overlaps.push(`${taskLabel(tasks[i])} 与 ${taskLabel(tasks[j])}`)
-        }
-      }
-    }
-
+    const overlaps = findOverlappingAreas(tasks)
     if (!overlaps.length) {
       lastOverlapWarningKeyRef.current = ''
       return
@@ -247,51 +180,11 @@ export default function RobotAdminPage() {
     setTaskPickMode('none')
   }
 
-  function stopMarkerAnimation(marker: L.Marker) {
-    const frame = markerFramesRef.current.get(marker)
-    if (frame) {
-      window.cancelAnimationFrame(frame)
-      markerFramesRef.current.delete(marker)
-    }
-  }
-
-  function animateMarkerTo(marker: L.Marker, nextLat: number, nextLng: number) {
-    const current = marker.getLatLng()
-    const startLat = Number(current?.lat)
-    const startLng = Number(current?.lng)
-    const endLat = Number(nextLat)
-    const endLng = Number(nextLng)
-
-    if (![startLat, startLng, endLat, endLng].every(Number.isFinite)) {
-      marker.setLatLng([nextLat, nextLng])
-      return
-    }
-    const deltaLat = endLat - startLat
-    const deltaLng = endLng - startLng
-    if (Math.abs(deltaLat) + Math.abs(deltaLng) < 1e-10) {
-      marker.setLatLng([endLat, endLng])
-      return
-    }
-
-    stopMarkerAnimation(marker)
-    const startedAt = performance.now()
-    const step = (now: number) => {
-      const t = Math.min((now - startedAt) / MARKER_ANIMATION_MS, 1)
-      const eased = t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2
-      marker.setLatLng([startLat + deltaLat * eased, startLng + deltaLng * eased])
-      if (t < 1) {
-        markerFramesRef.current.set(marker, window.requestAnimationFrame(step))
-      } else {
-        markerFramesRef.current.delete(marker)
-      }
-    }
-    markerFramesRef.current.set(marker, window.requestAnimationFrame(step))
-  }
-
   function renderMarkers(robotList: Robot[]) {
     const map = mapRef.current
     if (!map) return
     const markers = markersRef.current
+    const frames = markerFramesRef.current
     const activeIds = new Set<string>()
 
     robotList.forEach((robot) => {
@@ -300,7 +193,7 @@ export default function RobotAdminPage() {
       activeIds.add(markerId)
       const existing = markers.get(markerId)
       if (existing) {
-        animateMarkerTo(existing, robot.lat, robot.lng)
+        animateMarkerTo(existing, robot.lat, robot.lng, frames)
         existing.setPopupContent(buildRobotPopup(robot))
         return
       }
@@ -321,7 +214,7 @@ export default function RobotAdminPage() {
 
     markers.forEach((marker, markerId) => {
       if (activeIds.has(markerId)) return
-      stopMarkerAnimation(marker)
+      stopMarkerAnimation(marker, frames)
       map.removeLayer(marker)
       markers.delete(markerId)
     })
@@ -404,9 +297,28 @@ export default function RobotAdminPage() {
     }
   }
 
-  // Map handlers and timers are registered once; they call the latest functions through this ref.
-  const actionsRef = useRef({ loadRobots, loadPatrolTasks, handleTaskMapClick, navigateRobot })
-  actionsRef.current = { loadRobots, loadPatrolTasks, handleTaskMapClick, navigateRobot }
+  // When another robot is selected: refresh the editor fields and its patrol tasks.
+  function onSelectedRobotChanged() {
+    syncRobotEditorFromSelected()
+    if (editorVisibleRef.current && editorModeRef.current === 'task') {
+      resetTaskForm()
+    }
+    loadPatrolTasks()
+  }
+
+  // Switching the drawer to task mode starts with a fresh form.
+  function onEditorModeChanged() {
+    if (editorVisibleRef.current && editorModeRef.current === 'task') {
+      resetTaskForm()
+      loadPatrolTasks()
+    }
+  }
+
+  // Map handlers, timers and change effects run once or on specific changes; they call the
+  // latest version of these functions through this ref.
+  const actions = { loadRobots, loadPatrolTasks, handleTaskMapClick, navigateRobot, onSelectedRobotChanged, onEditorModeChanged }
+  const actionsRef = useRef(actions)
+  actionsRef.current = actions
 
   // Create the map and start polling robots.
   useEffect(() => {
@@ -422,8 +334,7 @@ export default function RobotAdminPage() {
       mapInteractedRef.current = true
     })
 
-    actionsRef.current.loadRobots()
-    const pollTimer = window.setInterval(() => actionsRef.current.loadRobots(), ROBOT_POLL_INTERVAL_MS)
+    const stopPolling = pollWhileVisible(() => actionsRef.current.loadRobots(), ROBOT_POLL_INTERVAL_MS)
     const onResize = () => map.invalidateSize()
     const sizeTimer = window.setTimeout(onResize, 300)
     window.addEventListener('resize', onResize)
@@ -431,7 +342,7 @@ export default function RobotAdminPage() {
     const markers = markersRef.current
     const frames = markerFramesRef.current
     return () => {
-      window.clearInterval(pollTimer)
+      stopPolling()
       window.clearTimeout(sizeTimer)
       window.removeEventListener('resize', onResize)
       frames.forEach((frame) => window.cancelAnimationFrame(frame))
@@ -446,148 +357,32 @@ export default function RobotAdminPage() {
     }
   }, [])
 
-  // When another robot is selected: refresh the editor fields and its patrol tasks.
   const previousSelectedRef = useRef(selectedRobotId)
   useEffect(() => {
     if (previousSelectedRef.current === selectedRobotId) return
     previousSelectedRef.current = selectedRobotId
-    syncRobotEditorFromSelected()
-    if (editorVisibleRef.current && editorModeRef.current === 'task') {
-      resetTaskForm()
-    }
-    actionsRef.current.loadPatrolTasks()
+    actionsRef.current.onSelectedRobotChanged()
   }, [selectedRobotId])
 
-  // Switching the drawer to task mode starts with a fresh form.
   const previousModeRef = useRef(editorMode)
   useEffect(() => {
     if (previousModeRef.current === editorMode) return
     previousModeRef.current = editorMode
-    if (editorVisibleRef.current && editorMode === 'task') {
-      resetTaskForm()
-      actionsRef.current.loadPatrolTasks()
-    }
+    actionsRef.current.onEditorModeChanged()
   }, [editorMode])
 
   // Poll patrol tasks while the task editor is open.
   useEffect(() => {
     if (!(editorVisible && editorMode === 'task' && selectedRobotId)) return
-    actionsRef.current.loadPatrolTasks({ silent: true })
-    const timer = window.setInterval(() => actionsRef.current.loadPatrolTasks({ silent: true }), TASK_POLL_INTERVAL_MS)
-    return () => window.clearInterval(timer)
+    return pollWhileVisible(() => actionsRef.current.loadPatrolTasks({ silent: true }), TASK_POLL_INTERVAL_MS)
   }, [editorVisible, editorMode, selectedRobotId])
 
-  // Resolve the selected robot's address while the drawer is open.
   useEffect(() => {
-    if (!editorVisible) {
-      setRobotAddressLoading(false)
-      setRobotAddressError('')
-      return
-    }
-    if (!selectedRobotAddressKey) return
-
-    const cacheKey = selectedRobotAddressKey
-    const [lat, lng] = cacheKey.split(',').map(Number)
-    const cached = addressCacheRef.current.get(cacheKey)
-    if (cached !== undefined) {
-      setRobotResolvedAddress(cached)
-      setRobotAddressError('')
-      setRobotAddressLoading(false)
-      return
-    }
-
-    setRobotAddressLoading(true)
-    setRobotAddressError('')
-    getJson<{ address?: string }>(`/api/robot/address?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`)
-      .then((payload) => {
-        const rawAddress = String(payload.address || '').trim()
-        const address = (/^not\s*found$/i.test(rawAddress) ? '' : rawAddress) || '未解析到详细地址'
-        addressCacheRef.current.set(cacheKey, address)
-        if (addressKeyRef.current === cacheKey) {
-          setRobotResolvedAddress(address)
-        }
-      })
-      .catch((error) => {
-        if (addressKeyRef.current === cacheKey) {
-          setRobotResolvedAddress(`坐标：${lat.toFixed(5)}, ${lng.toFixed(5)}`)
-          setRobotAddressError(errorMessage(error, '地址解析失败'))
-        }
-      })
-      .finally(() => {
-        if (addressKeyRef.current === cacheKey) {
-          setRobotAddressLoading(false)
-        }
-      })
-  }, [selectedRobotAddressKey, editorVisible])
-
-  // A selected robot without coordinates has no address to resolve.
-  useEffect(() => {
-    if (editorVisible && selectedRobot && !selectedRobotAddressKey) {
-      setRobotResolvedAddress('暂无定位信息')
-      setRobotAddressError('')
-      setRobotAddressLoading(false)
-    }
-  }, [editorVisible, selectedRobot, selectedRobotAddressKey])
-
-  // Draw the task being edited (draft points, area polygon, path line).
-  useEffect(() => {
-    const layer = taskDraftOverlayRef.current
-    if (!layer) return
-    layer.clearLayers()
-
-    taskAreaPoints.forEach((point) => {
-      L.circleMarker([point.lat, point.lng], { radius: 5, color: '#d53f50', weight: 2, fillColor: '#ef7483', fillOpacity: 0.85 }).addTo(layer)
-    })
-    const areaLatLngs = taskAreaPoints.map((point) => [point.lat, point.lng] as [number, number])
-    if (taskAreaPoints.length >= 3) {
-      L.polygon(areaLatLngs, { color: '#d53f50', weight: 2, fillColor: '#ef7483', fillOpacity: 0.18 }).addTo(layer)
-    } else if (taskAreaPoints.length >= 2) {
-      L.polyline(areaLatLngs, { color: '#d53f50', weight: 2 }).addTo(layer)
-    }
-
-    taskPathPoints.forEach((point) => {
-      L.circleMarker([point.lat, point.lng], { radius: 5, color: '#2563eb', weight: 2, fillColor: '#60a5fa', fillOpacity: 0.85 }).addTo(layer)
-    })
-    if (taskPathPoints.length >= 2) {
-      L.polyline(taskPathPoints.map((point) => [point.lat, point.lng] as [number, number]), { color: '#2563eb', weight: 3, dashArray: '6 6' }).addTo(layer)
-    }
+    if (taskDraftOverlayRef.current) drawDraftTask(taskDraftOverlayRef.current, taskAreaPoints, taskPathPoints)
   }, [taskAreaPoints, taskPathPoints])
 
-  // Draw the saved patrol tasks of the selected robot.
   useEffect(() => {
-    const layer = taskOverlayRef.current
-    if (!layer) return
-    layer.clearLayers()
-
-    patrolTasks.forEach((task) => {
-      const areaPoints = normalizePointList(task.inspection_area || [])
-      const pathPoints = normalizePointList(task.planned_path || [])
-      const isRunning = String(task.status || '').toUpperCase() === 'RUNNING'
-      const areaColor = isRunning ? '#f97316' : '#d53f50'
-      const areaFillColor = isRunning ? '#fdba74' : '#ef7483'
-      const pathColor = isRunning ? '#0f766e' : '#2563eb'
-      const label = task.name || `任务 #${task.id}`
-
-      areaPoints.forEach((point) => {
-        L.circleMarker([point.lat, point.lng], { radius: 4, color: areaColor, weight: 1.5, fillColor: areaFillColor, fillOpacity: 0.72 })
-          .bindTooltip(label).addTo(layer)
-      })
-      if (areaPoints.length >= 3) {
-        L.polygon(areaPoints.map((point) => [point.lat, point.lng] as [number, number]), {
-          color: areaColor, weight: 2, fillColor: areaFillColor, fillOpacity: 0.14,
-        }).bindTooltip(`${label} 检测区`).addTo(layer)
-      }
-
-      pathPoints.forEach((point) => {
-        L.circleMarker([point.lat, point.lng], { radius: 4, color: pathColor, weight: 1.5, fillColor: '#60a5fa', fillOpacity: 0.72 })
-          .bindTooltip(label).addTo(layer)
-      })
-      if (pathPoints.length >= 2) {
-        L.polyline(pathPoints.map((point) => [point.lat, point.lng] as [number, number]), {
-          color: pathColor, weight: 2.5, dashArray: '6 6', opacity: 0.88,
-        }).bindTooltip(`${label} 路径`).addTo(layer)
-      }
-    })
+    if (taskOverlayRef.current) drawPatrolTasks(taskOverlayRef.current, patrolTasks)
   }, [patrolTasks])
 
   // --- UI actions ---
@@ -658,8 +453,7 @@ export default function RobotAdminPage() {
       if (!task) throw new Error('任务不存在')
 
       setEditingTaskId(task.id)
-      setTaskName(task.name || '')
-      setTaskStatus(task.status || 'PLANNED')
+      patchTaskForm({ name: task.name || '', status: task.status || 'PLANNED' })
       setDraftArea(normalizePointList(task.inspection_area || []))
       setDraftPath(normalizePointList(task.planned_path || []))
       setTaskPickMode('none')
@@ -678,17 +472,17 @@ export default function RobotAdminPage() {
 
     let geometry: { area: LatLngPoint[]; path: LatLngPoint[] }
     try {
-      geometry = parseTaskGeometry(taskAreaText, taskPathText)
+      geometry = parseTaskGeometry(taskForm.areaText, taskForm.pathText)
     } catch (error) {
       setTaskActionFeedback(errorMessage(error, '任务坐标格式错误'), 'error')
       return
     }
 
     const payload = {
-      name: taskName.trim(),
+      name: taskForm.name.trim(),
       inspection_area: geometry.area,
       planned_path: geometry.path,
-      status: taskStatus,
+      status: taskForm.status,
     }
     if (!payload.name) {
       setTaskActionFeedback('任务名称不能为空', 'warning')
@@ -740,8 +534,6 @@ export default function RobotAdminPage() {
     }
   }
 
-  const taskPickModeLabel = taskPickMode === 'area' ? '巡检区域' : taskPickMode === 'path' ? '路径规划' : '未开启'
-
   return (
     <div className="scope-robot-admin robot-admin-page">
       <div className="map-toolbar">
@@ -789,126 +581,40 @@ export default function RobotAdminPage() {
           </div>
 
           {editorMode === 'robot' && (
-            <div className="drawer-body">
-              <div className="robot-quick-grid">
-                <div className="quick-card">
-                  <div className="quick-label">在线状态</div>
-                  <div className={`quick-value ${statusClass(selectedRobot.status)}`}>{selectedRobot.status || 'UNKNOWN'}</div>
-                </div>
-                <div className="quick-card quick-card-wide">
-                  <div className="quick-label">当前位置</div>
-                  <div className="quick-value quick-address-value">
-                    {robotAddressLoading ? '地址解析中...' : robotResolvedAddress || '暂无定位信息'}
-                  </div>
-                  {robotAddressError && <div className="quick-subvalue">{robotAddressError}</div>}
-                </div>
-              </div>
-
-              <input value={robotEditName} onChange={(event) => setRobotEditName(event.target.value)} className="input-control" placeholder="机器人名称" />
-              <select value={robotEditStatus} onChange={(event) => setRobotEditStatus(event.target.value)} className="input-control">
-                {ROBOT_STATUSES.map((status) => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-              <div className="drawer-actions robot-actions">
-                <button type="button" className="square-btn robot-action-btn" onClick={saveRobotProfile}>保存机器人</button>
-                <button type="button" className="square-btn btn-delete robot-action-btn" onClick={() => deleteRobot(selectedRobot.id)}>删除机器人</button>
-                <Link className="square-btn robot-action-btn" to={`/robot/${selectedRobot.id}`}>手动控制</Link>
-              </div>
-            </div>
+            <RobotProfilePanel
+              robot={selectedRobot}
+              address={robotAddress}
+              editName={robotEditName}
+              editStatus={robotEditStatus}
+              onEditNameChange={setRobotEditName}
+              onEditStatusChange={setRobotEditStatus}
+              onSave={saveRobotProfile}
+              onDelete={() => deleteRobot(selectedRobot.id)}
+            />
           )}
 
           {editorMode === 'task' && (
-            <div className="drawer-body task-drawer-body">
-              <div className="task-map-tools">
-                <button
-                  type="button"
-                  className={`square-btn${taskPickMode === 'area' ? ' square-btn-active' : ''}`}
-                  onClick={() => startTaskPickMode('area')}
-                >
-                  地图选四点-区域
-                </button>
-                <button
-                  type="button"
-                  className={`square-btn${taskPickMode === 'path' ? ' square-btn-active' : ''}`}
-                  onClick={() => startTaskPickMode('path')}
-                >
-                  地图选四点-路径
-                </button>
-                <button type="button" className="square-btn" onClick={() => setTaskPickMode('none')}>停止选点</button>
-              </div>
-
-              <div className="task-map-hint">
-                模式：{taskPickModeLabel} ｜ 区域 {taskAreaPoints.length}/{MAP_PICK_POINT_LIMIT} ｜ 路径 {taskPathPoints.length}/{MAP_PICK_POINT_LIMIT}
-              </div>
-
-              <input value={taskName} onChange={(event) => setTaskName(event.target.value)} className="input-control" placeholder="任务名称，例如：校园北区早巡" />
-              <select value={taskStatus} onChange={(event) => setTaskStatus(event.target.value)} className="input-control">
-                {PATROL_STATUSES.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
-                ))}
-              </select>
-
-              <div className="task-textarea-head">
-                <span>巡检区域坐标（固定 4 点）</span>
-                <button type="button" className="square-btn" onClick={() => setDraftArea([])}>清空区域</button>
-              </div>
-              <textarea
-                value={taskAreaText}
-                onChange={(event) => setTaskAreaText(event.target.value)}
-                className="input-control task-textarea"
-                placeholder={AREA_PLACEHOLDER}
-              />
-
-              <div className="task-textarea-head">
-                <span>规划路径坐标（为空或固定 4 点）</span>
-                <button type="button" className="square-btn" onClick={() => setDraftPath([])}>清空路径</button>
-              </div>
-              <textarea
-                value={taskPathText}
-                onChange={(event) => setTaskPathText(event.target.value)}
-                className="input-control task-textarea"
-                placeholder={PATH_PLACEHOLDER}
-              />
-
-              <div className="drawer-actions">
-                <button type="button" className="square-btn" disabled={taskSaving} onClick={savePatrolTask}>
-                  {taskSaving ? '提交中...' : editingTaskId ? '保存更新' : '新建任务'}
-                </button>
-                <button type="button" className="square-btn" onClick={resetTaskForm}>重置</button>
-              </div>
-
-              {taskActionMessage && (
-                <div className={`task-action-feedback task-action-${taskActionType}`}>{taskActionMessage}</div>
-              )}
-              {editingTaskId && <div className="task-editing-tip">当前编辑任务 #{editingTaskId}</div>}
-
-              <div className="task-list-wrap">
-                {taskLoading ? (
-                  <div className="empty-state">任务载入中...</div>
-                ) : (
-                  <>
-                    {patrolTasks.map((task) => (
-                      <div key={task.id} className="task-list-item">
-                        <div className="task-item-head">
-                          <span className="task-item-name">{task.name}</span>
-                          <span className={`task-item-status ${statusClass(task.status)}`}>{task.status}</span>
-                        </div>
-                        <div className="task-item-meta">创建时间：{task.created_at || '-'}</div>
-                        <div className="task-item-actions">
-                          <button type="button" className="square-btn" onClick={() => loadTaskDetail(task.id)}>编辑</button>
-                          <button type="button" className="square-btn" onClick={() => updateTaskStatus(task.id, 'RUNNING')}>运行</button>
-                          <button type="button" className="square-btn" onClick={() => updateTaskStatus(task.id, 'PAUSED')}>暂停</button>
-                          <button type="button" className="square-btn" onClick={() => updateTaskStatus(task.id, 'DONE')}>完成</button>
-                          <button type="button" className="square-btn btn-delete" onClick={() => deletePatrolTask(task.id)}>删除</button>
-                        </div>
-                      </div>
-                    ))}
-                    {!patrolTasks.length && <div className="empty-state">暂无巡检任务</div>}
-                  </>
-                )}
-              </div>
-            </div>
+            <PatrolTaskPanel
+              form={taskForm}
+              onFormChange={patchTaskForm}
+              pickMode={taskPickMode}
+              onStartPick={startTaskPickMode}
+              onStopPick={() => setTaskPickMode('none')}
+              areaPointCount={taskAreaPoints.length}
+              pathPointCount={taskPathPoints.length}
+              onClearArea={() => setDraftArea([])}
+              onClearPath={() => setDraftPath([])}
+              editingTaskId={editingTaskId}
+              saving={taskSaving}
+              onSave={savePatrolTask}
+              onReset={resetTaskForm}
+              feedback={taskFeedback}
+              loading={taskLoading}
+              tasks={patrolTasks}
+              onEditTask={loadTaskDetail}
+              onSetTaskStatus={updateTaskStatus}
+              onDeleteTask={deletePatrolTask}
+            />
           )}
         </div>
       )}

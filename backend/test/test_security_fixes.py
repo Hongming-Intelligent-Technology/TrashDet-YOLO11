@@ -79,9 +79,9 @@ class BootstrapAdminTestCase(unittest.TestCase):
 
     def test_uses_configured_credentials(self):
         output = self._bootstrap({
-            'ECOGUARD_ADMIN_USERNAME': 'root',
-            'ECOGUARD_ADMIN_PASSWORD': 'chosen-password',
-            'ECOGUARD_ADMIN_SECURITY_CODE': '4321',
+            'TRASHDET_ADMIN_USERNAME': 'root',
+            'TRASHDET_ADMIN_PASSWORD': 'chosen-password',
+            'TRASHDET_ADMIN_SECURITY_CODE': '4321',
         })
         admin = User.query.filter_by(username='root').one()
         self.assertTrue(admin.check_password('chosen-password'))

@@ -24,7 +24,7 @@ from .services_captcha import (
 from .utils import _normalize_secret
 from services.auth import get_session_user as _get_current_user, is_admin_user as _is_admin_user, login_required
 
-APP_TITLE = 'EcoGuard 垃圾拾捡机器人管理系统'
+APP_TITLE = 'TrashDet 垃圾拾捡机器人管理系统'
 DEFAULT_LOGIN_NEXT = '/'
 
 
@@ -226,7 +226,7 @@ def _serialize_robot(robot):
     }
 
 
-def _render_spa(page_title='EcoGuard', next_path=None):
+def _render_spa(page_title='TrashDet', next_path=None):
     initial_state = {
         'authUser': _serialize_user(_get_current_user()),
         'flashMessages': _serialize_flash_messages(),

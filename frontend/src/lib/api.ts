@@ -41,7 +41,7 @@ export async function requestJson<T = JsonObject>(url: string, options: RequestI
     headers: {
       ...JSON_HEADERS,
       ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-      ...((options.headers as Record<string, string>) || {}),
+      ...(options.headers as Record<string, string> | undefined),
     },
   })
 

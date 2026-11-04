@@ -1,209 +1,147 @@
 # TrashDet-YOLO11
 
-TrashDet-YOLO11 is a full-stack platform for waste inspection and cleaning robot operations, including:
-- Flask backend services (detection, statistics, robot control, training, authentication)
-- React 19 + TypeScript single-page frontend (SPA)
-- Robot firmware integration examples and local simulation scripts
+[简体中文](README.md) | **English**
 
-The project is designed as an end-to-end loop from image capture and garbage detection to data storage, hotspot analytics, robot scheduling, and model retraining.
+TrashDet is a trash detection and cleanup-robot management platform built on YOLO11. It connects the whole loop: capture or upload an image → detect trash → record results and locations → find hotspot areas → send a robot to clean up → retrain the model on new data.
 
-## Feature Highlights
+## What's inside
 
-- Image Detection
-  - Upload an image and run YOLO inference
-  - Return boxes/classes/confidence and save annotated outputs
-  - Support server-side ingest API for external detection results
-- Video Detection
-  - Upload video and process asynchronously
-  - Poll task status/results via API
-- Analytics
-  - Detection trends, class distribution, and map points
-  - Hotspot analysis with geocoding cache
-- Robot Management
-  - Registration, heartbeat/status sync, control commands, navigation
-  - Robot list and status updates
-- Online Training
-  - Upload dataset ZIP and start async training jobs
-  - Query job status, logs, and output artifacts
-- Web Auth and Operations
-  - Register/login/logout, session state, captcha
-  - Task list/detail and management APIs
+| Part | Description |
+|---|---|
+| `backend/` | Flask backend: detection, statistics, robots, training, authentication |
+| `frontend/` | React 19 + TypeScript dashboard, built into the backend and served by it |
+| `Rm_arm/` | ESP32 firmware for the robot arm (PlatformIO) |
+| `Simulator/` | Robot simulators (terminal and Qt GUI) for testing without hardware |
 
-## Repository Layout
+## Features
 
-```text
-EcoGuard/
-├─ backend/                  # Flask backend
-│  ├─ app.py                 # Backend entrypoint
-│  ├─ config.py              # Config and runtime overrides
-│  ├─ runtime_config.example.yaml  # Runtime config template (copy to runtime_config.yaml)
-│  ├─ api/                   # detect/stats/robot/train APIs
-│  ├─ web/                   # SPA-compatible routes and web APIs
-│  ├─ database/              # SQLAlchemy models and DB bootstrap
-│  ├─ inference/             # YOLO inference wrapper
-│  ├─ model/runs/train/      # Trained model (best.pt and training plots)
-│  ├─ test/                  # Backend unit tests
-│  └─ requirements.txt       # Python dependencies
-├─ frontend/                 # React + TypeScript + Vite frontend
-│  ├─ src/
-│  ├─ package.json
-│  └─ vite.config.js         # Build output: backend/static/spa
-├─ Rm_arm/                   # Robot arm ESP32 firmware (PlatformIO)
-├─ Simulator/                # Robot simulation scripts
-└─ LICENSE
-```
+- **Image detection**: upload an image and get boxes, classes and confidence scores, plus a saved annotated image
+- **Video detection**: upload a video, process it in the background and poll its progress
+- **Analytics**: detection trends, class distribution, map points and hotspot analysis
+- **Robot management**: registration, heartbeat, status sync, control commands and navigation
+- **Online training**: upload a ZIP dataset and train a new model in the background (admins only)
+- **Accounts**: registration, login, captcha and an admin panel
 
-## Requirements
+## Bundled model
 
-- Python 3.10+ (recommended)
-- Node.js 18+
-- Optional: CUDA runtime for GPU inference/training
-- Database
-  - SQLite by default
-  - MySQL supported via config overrides
+The repo ships a trained model at `backend/model/runs/train/train-200epoch-v11n.pt-bs16/weights/best.pt` (YOLO11n, 640×640, 200 epochs, batch 16). Validation results:
 
-## Backend Quick Start
+| Precision | Recall | mAP50 | mAP50-95 |
+|---|---|---|---|
+| 0.897 | 0.799 | 0.864 | 0.583 |
 
-1. Create and activate your Python environment.
-2. Install backend dependencies.
-3. Start the backend service.
+Training curves, the confusion matrix and other plots are in the same folder.
+
+## Quick start
+
+Requires Python 3.10+ and Node.js 18+. CUDA is optional, for GPU inference or training.
+
+### 1. Run the backend
 
 ```bash
 cd backend
 pip install -r requirements.txt
-cp .env.example .env  # fill in SECRET_KEY etc.
+cp .env.example .env    # set at least SECRET_KEY
 python app.py
 ```
 
-After startup:
-- http://127.0.0.1:5000
-- Health endpoint: http://127.0.0.1:5000/health
+Open http://127.0.0.1:5000. Health check: http://127.0.0.1:5000/health
 
-Notes:
-- Database migrations (Flask-Migrate, see `backend/migrations/`) are applied automatically at startup. Databases created by older versions are adopted without being recreated.
-- After changing models, generate a migration with `cd backend && flask --app app:create_app db migrate -m "message"`.
-- Video detection and training run in background threads; their status is stored in the database, and unfinished jobs are marked as failed when the server restarts.
-- In production use a single worker (e.g. `gunicorn -w 1 --threads 8 "app:create_app()"`); multiple workers would split background job state.
-- If there are no users, a bootstrap admin account is auto-created: username `admin` by default, password and security code from `ECOGUARD_ADMIN_PASSWORD` / `ECOGUARD_ADMIN_SECURITY_CODE`; if unset they are generated randomly and printed once in the startup log (change them after logging in).
+**First login**: when the database has no users, an admin account is created. The username defaults to `admin`; the password and security code come from `TRASHDET_ADMIN_PASSWORD` and `TRASHDET_ADMIN_SECURITY_CODE` in `.env`. If they're not set, random ones are generated and printed once in the startup log. Change them right after logging in.
 
-## Frontend Development and Build
+### 2. Work on the frontend (optional)
 
-Development mode:
+The backend already includes a built frontend. You only need this step to change the UI:
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev      # dev server; /api requests go to http://127.0.0.1:5000
+npm run lint     # lint with oxlint, including React hooks rules
+npm run build    # type-check and build into backend/static/spa, served by the backend
 ```
 
-Vite proxies `/api` requests to `http://127.0.0.1:5000` by default.
-
-Production build:
+### 3. Run a simulated robot (optional)
 
 ```bash
-cd frontend
-npm run build
+pip install -r Simulator/requirements.txt
+python Simulator/Sim_robot.py --server http://127.0.0.1:5000          # terminal version
+python Simulator/Sim_robot.py --gui --server http://127.0.0.1:5000    # Qt GUI version
 ```
-
-Build artifacts are written to `backend/static/spa` and served by the backend.
 
 ## Configuration
 
-Backend config precedence:
+Settings are applied in this order; earlier sources override later ones:
+
 1. Environment variables
-2. `backend/.env` (copy from `backend/.env.example`; holds SECRET_KEY, DB password, etc.)
+2. `backend/.env` (copy from `.env.example`; holds secrets and DB passwords)
 3. `backend/runtime_config.yaml` (copy from `runtime_config.example.yaml`)
 4. Defaults in `backend/config.py`
 
 Common settings:
-- `SQLALCHEMY_DATABASE_URI` / `DATABASE_URL`
-- `YOLO_MODEL_PATH`
-- `YOLO_CONF_THRESHOLD`
-- `MAX_CONTENT_LENGTH`
-- `TRAIN_MAX_CONTENT_LENGTH`
-- `CAPTCHA_ENABLED`
 
-Important:
-- `runtime_config.example.yaml` uses MySQL (`trashdet`); set the password via the `MYSQL_PASSWORD` environment variable.
-- Set `SECRET_KEY` as an environment variable, never in the config file.
-- With MySQL, create the database first (tables are created by the migrations): `CREATE DATABASE trashdet CHARACTER SET utf8mb4;`
-- Back up the database before upgrading (`mysqldump trashdet > backup.sql`); MySQL schema changes cannot be rolled back.
-- If that DB does not exist locally, switch to SQLite URI or remove MySQL entries.
+| Setting | Purpose |
+|---|---|
+| `SECRET_KEY` | Session key; must be set via an environment variable or `.env` |
+| `DATABASE_URL` or `MYSQL_*` | Database connection; leave both empty to use SQLite (`backend/trashdet.db`) |
+| `YOLO_MODEL_PATH` | Path to the detection model |
+| `YOLO_CONF_THRESHOLD` | Confidence threshold, default 0.25 |
+| `TRAIN_MAX_CONTENT_LENGTH` | Maximum training dataset upload size |
+| `CAPTCHA_ENABLED` | Turn the login captcha on or off |
 
-## Core APIs
+### Using MySQL
 
-Detection:
-- `GET /api/detect/dependencies` dependency health for detection runtime
-- `POST /api/detect` image detection
-- `POST /api/detect/video` async video detection
-- `GET /api/detect/video/status/<task_id>` video task status
-- `POST /api/detect/ingest` ingest externally produced detection results
+```sql
+CREATE DATABASE trashdet CHARACTER SET utf8mb4;
+```
 
-Statistics:
-- `GET /api/stats/summary`
-- `GET /api/stats/hotspots`
+Migrations create the tables; just fill in `MYSQL_*` in `.env`. Back up before upgrading (`mysqldump trashdet > backup.sql`), because MySQL schema changes can't be rolled back.
 
-Robot:
-- `POST /api/robot/register`
-- `POST /api/robot/heartbeat`
-- `POST /api/robot/status_update`
-- `POST /api/robot/control`
-- `POST /api/robot/navigate`
-- `GET /api/robot/list`
+### Database migrations
 
-Training:
-- `GET /api/train/config`
-- `POST /api/train/start`
-- `GET /api/train/status/<job_id>`
-- `GET /api/train/status`
+- Migrations run automatically at startup (Flask-Migrate, see `backend/migrations/`). Databases created by older versions are adopted as-is.
+- After changing a model, generate a migration: `cd backend && flask --app app:create_app db migrate -m "message"`
 
-Web session and data APIs (excerpt):
-- `GET /api/web/session`
-- `POST /api/web/login`
-- `POST /api/web/register`
-- `POST /api/web/logout`
-- `GET /api/web/tasks`
+## Deployment notes
 
-## Model and Training Workflow
+Video detection and training run in background threads, with their status stored in the database. Unfinished jobs are marked as failed when the server restarts.
 
-- Inference implementation is in `backend/inference/yolo_detector.py`.
-- Training is triggered asynchronously by `POST /api/train/start`; only admins can start it (uploaded weights and dataset configs can execute code when loaded).
-- Dataset upload requires ZIP; custom `.pt` weight upload is supported.
-- Job result includes output folder and a best-weight hint path.
+In production, use a **single worker**, or background job state will be split between workers:
 
-## Robot Integration and Simulation
+```bash
+gunicorn -w 1 --threads 8 "app:create_app()"
+```
 
-- Robot firmware examples are under `Rm_arm/`.
-- Desktop simulation scripts are under `Simulator/` (install with `pip install -r Simulator/requirements.txt`).
-- Backend robot APIs provide heartbeat, status sync, navigation, and control channels.
+## API overview
+
+| Area | Endpoints |
+|---|---|
+| Detection | `POST /api/detect` image detection<br>`POST /api/detect/video` video detection<br>`GET /api/detect/video/status/<task_id>` video job status<br>`POST /api/detect/ingest` store external detection results<br>`GET /api/detect/dependencies` check detection dependencies |
+| Statistics | `GET /api/stats/summary`<br>`GET /api/stats/hotspots` |
+| Robots | `POST /api/robot/register`<br>`POST /api/robot/heartbeat`<br>`POST /api/robot/status_update`<br>`POST /api/robot/control`<br>`POST /api/robot/navigate`<br>`GET /api/robot/list` |
+| Training | `GET /api/train/config`<br>`POST /api/train/start` (admins only)<br>`GET /api/train/status`<br>`GET /api/train/status/<job_id>` |
+| Accounts | `GET /api/web/session`<br>`POST /api/web/login`<br>`POST /api/web/register`<br>`POST /api/web/logout` |
+
+Only admins can start training, because uploaded weights and dataset configs can run code when loaded.
 
 ## Testing
 
-Run full backend unit tests:
+Tests only need lightweight dependencies (no torch or ultralytics):
 
 ```bash
 cd backend
-python -m unittest discover -s test -p "test_*.py"
-```
-
-If your environment is missing optional dependencies, run baseline tests first:
-
-```bash
-cd backend
-python -m unittest -q test.test_config test.test_ml_algorithm
+pip install -r requirements-dev.txt
+ruff check .
+python -m pytest -q test
 ```
 
 ## Troubleshooting
 
-- Detection API reports missing dependencies
-  - Call `GET /api/detect/dependencies` for missing packages and install hints.
-- Startup fails with unknown MySQL database
-  - Check `backend/runtime_config.yaml` database block; switch to a valid DB or SQLite.
-- Training upload rejected with HTTP 413
-  - Increase `TRAIN_MAX_CONTENT_LENGTH` and ensure `MAX_CONTENT_LENGTH >= TRAIN_MAX_CONTENT_LENGTH`.
-- Frontend style/resource mismatch
-  - Use built artifacts from `frontend` and serve from `backend/static/spa`.
+- **Detection says dependencies are missing**: call `GET /api/detect/dependencies` to see which packages are missing and how to install them.
+- **Startup fails because the MySQL database doesn't exist**: create it first, or clear `MYSQL_*` to use SQLite.
+- **Training upload rejected with HTTP 413**: raise `TRAIN_MAX_CONTENT_LENGTH`. If `runtime_config.yaml` sets `MAX_CONTENT_LENGTH`, it must not be smaller.
+- **Pages look broken**: run `npm run build` again so `backend/static/spa` is up to date.
 
 ## License
 
-This project is licensed under AGPL-3.0, matching Ultralytics YOLO. See `LICENSE` for details.
+AGPL-3.0, matching Ultralytics YOLO. See [LICENSE](LICENSE).

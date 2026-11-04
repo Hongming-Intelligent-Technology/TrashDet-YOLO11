@@ -1,0 +1,1 @@
+function e(e,t,{immediate:n=!0}={}){let r=null,i=()=>{r===null&&(r=window.setInterval(e,t))},a=()=>{r!==null&&(window.clearInterval(r),r=null)},o=()=>{document.hidden?a():(e(),i())};return n&&e(),document.hidden||i(),document.addEventListener(`visibilitychange`,o),()=>{a(),document.removeEventListener(`visibilitychange`,o)}}export{e as t};

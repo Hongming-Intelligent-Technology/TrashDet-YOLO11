@@ -27,7 +27,7 @@ function readInitialState(): InitialState {
     return fallback
   }
   try {
-    return { ...fallback, ...(JSON.parse(el.textContent || '{}') || {}) }
+    return { ...fallback, ...JSON.parse(el.textContent || '{}') }
   } catch {
     return fallback
   }

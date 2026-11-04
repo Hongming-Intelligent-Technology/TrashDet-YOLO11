@@ -340,7 +340,7 @@ def lookup_address(lat, lng):
         _nominatim_rate_limit()
         url = f'https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lng}&zoom=10&addressdetails=1'
         headers = {
-            'User-Agent': 'EcoGuard/2.0 (trash-detection-robot-system)'
+            'User-Agent': 'TrashDet/2.0 (trash-detection-robot-system)'
         }
 
         geo_response = requests.get(url, headers=headers, timeout=5)

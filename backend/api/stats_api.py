@@ -188,7 +188,7 @@ def _resolve_hotspot_region(lat, lng):
                         'accept-language': 'zh-CN',
                     },
                     headers={
-                        'User-Agent': 'EcoGuard/2.0 (hotspot-region-resolver)'
+                        'User-Agent': 'TrashDet/2.0 (hotspot-region-resolver)'
                     },
                     timeout=(HOTSPOT_GEO_CONNECT_TIMEOUT_SECONDS, HOTSPOT_GEO_READ_TIMEOUT_SECONDS),
                 )

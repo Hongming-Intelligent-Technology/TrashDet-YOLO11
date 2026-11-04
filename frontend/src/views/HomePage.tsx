@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import * as echarts from 'echarts'
+import * as echarts from '../lib/echarts'
 import L from 'leaflet'
 import { errorMessage, getJson } from '../lib/api'
 import { escapeHtml } from '../lib/escape'
 import { focusMapToDenseRegion } from '../lib/mapFocus'
+import { pollWhileVisible } from '../lib/polling'
 import { pushFlash } from '../stores/session'
 import type { RobotSummary, TaskLocation } from '../types'
 import './HomePage.css'
@@ -169,14 +170,13 @@ export default function HomePage() {
       map.invalidateSize()
     }
 
-    loadDashboard()
-    const refreshTimer = window.setInterval(loadDashboard, REFRESH_INTERVAL_MS)
+    const stopPolling = pollWhileVisible(loadDashboard, REFRESH_INTERVAL_MS)
     const sizeTimer = window.setTimeout(() => map.invalidateSize(), 500)
     window.addEventListener('resize', onResize)
 
     return () => {
       disposed = true
-      window.clearInterval(refreshTimer)
+      stopPolling()
       window.clearTimeout(sizeTimer)
       window.removeEventListener('resize', onResize)
       chart.dispose()

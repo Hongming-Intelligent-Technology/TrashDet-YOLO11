@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import * as echarts from 'echarts'
+import * as echarts from '../lib/echarts'
 import L from 'leaflet'
 import { errorMessage, getJson } from '../lib/api'
 import { escapeHtml } from '../lib/escape'
