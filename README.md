@@ -80,7 +80,8 @@ python app.py
 - 健康检查：http://127.0.0.1:5000/health
 
 说明：
-- 服务启动时会自动执行 `db.create_all()`。
+- 服务启动时会自动执行数据库迁移（Flask-Migrate，见 `backend/migrations/`）。旧版本创建的数据库会被自动接管，无需重建。
+- 修改模型后生成迁移：`cd backend && flask --app app:create_app db migrate -m "说明"`。
 - 视频检测与模型训练在后台线程中运行，状态保存在数据库；服务重启时未完成的任务会被标记为失败。
 - 生产部署请使用单个 worker（例如 `gunicorn -w 1 --threads 8 "app:create_app()"`），多 worker 会导致后台任务状态不一致。
 - 若数据库中无用户，会自动创建引导管理员账号（请在生产环境立即改密）。

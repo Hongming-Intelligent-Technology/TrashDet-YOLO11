@@ -80,7 +80,8 @@ After startup:
 - Health endpoint: http://127.0.0.1:5000/health
 
 Notes:
-- `db.create_all()` runs at startup.
+- Database migrations (Flask-Migrate, see `backend/migrations/`) are applied automatically at startup. Databases created by older versions are adopted without being recreated.
+- After changing models, generate a migration with `cd backend && flask --app app:create_app db migrate -m "message"`.
 - Video detection and training run in background threads; their status is stored in the database, and unfinished jobs are marked as failed when the server restarts.
 - In production use a single worker (e.g. `gunicorn -w 1 --threads 8 "app:create_app()"`); multiple workers would split background job state.
 - If there are no users, a bootstrap admin account is auto-created (change credentials immediately in production).

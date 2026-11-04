@@ -115,6 +115,26 @@ def ensure_ownership_schema_impl(app, db_obj, logger=None):
         logger_obj.exception('Failed to patch ownership schema.')
 
 
+def apply_database_migrations_impl(db_obj, upgrade_func, stamp_func, ensure_legacy_schema, logger=None):
+    """Bring the database schema up to date with Alembic migrations.
+
+    Databases created before migrations existed (by db.create_all() or
+    database/database.sql) have tables but no alembic_version table. They are
+    patched with the legacy column fixes, stamped at the matching baseline
+    revision, and then upgraded normally.
+    """
+    logger_obj = logger or logging.getLogger(__name__)
+    table_names = set(inspect(db_obj.engine).get_table_names())
+
+    if 'alembic_version' not in table_names and 'users' in table_names:
+        ensure_legacy_schema()
+        baseline = '0002' if 'train_jobs' in table_names else '0001'
+        stamp_func(revision=baseline)
+        logger_obj.warning('Existing database adopted by migrations at revision %s.', baseline)
+
+    upgrade_func()
+
+
 INTERRUPTED_MESSAGE = '服务重启，任务已中断，请重新提交。'
 
 

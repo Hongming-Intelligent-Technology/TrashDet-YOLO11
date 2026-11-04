@@ -3,6 +3,7 @@
 # Full runtime dependencies: requirements.txt
 Flask==3.0.0
 Flask-SQLAlchemy==3.1.1
+Flask-Migrate>=4.0.0
 Flask-Login>=0.6.3
 Werkzeug>=3.0.0
 SQLAlchemy>=2.0.0

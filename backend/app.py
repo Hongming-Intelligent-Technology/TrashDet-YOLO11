@@ -17,8 +17,10 @@ except OSError:
     logging.warning("PyTorch import failed due to missing DLL dependencies. Seeding skips torch.")
 
 from flask import Flask
+from flask_migrate import Migrate, stamp as migrate_stamp, upgrade as migrate_upgrade
 from api.detect_helpers import log_detection_dependency_report
 from app_factory_services import (
+    apply_database_migrations_impl,
     configure_root_logging,
     ensure_bootstrap_admin_impl,
     ensure_ownership_schema_impl,
@@ -37,6 +39,9 @@ from web.pages import web_bp
 from api.stats_api import stats_bp
 from api.robot_api import robot_bp
 from api.train_api import train_bp
+
+
+migrate = Migrate()
 
 
 def seed_everything(seed=42):
@@ -92,13 +97,22 @@ def create_app(config_overrides=None):
     logging.info('Active database URI: %s', _mask_database_uri(app.config.get('SQLALCHEMY_DATABASE_URI')))
 
     db.init_app(app)
+    migrate.init_app(app, db, directory=os.path.join(app.config.get('BASE_DIR', app.root_path), 'migrations'))
 
     with app.app_context():
         os.makedirs(app.config.get('STATIC_DIR', os.path.join(app.root_path, 'static')), exist_ok=True)
         os.makedirs(app.config.get('UPLOAD_DIR', os.path.join(app.root_path, 'static', 'uploads')), exist_ok=True)
         os.makedirs(app.config.get('RESULT_DIR', os.path.join(app.root_path, 'static', 'results')), exist_ok=True)
-        db.create_all()
-        ensure_ownership_schema(app)
+        if app.config.get('TESTING'):
+            db.create_all()
+        else:
+            apply_database_migrations_impl(
+                db,
+                upgrade_func=migrate_upgrade,
+                stamp_func=migrate_stamp,
+                ensure_legacy_schema=lambda: ensure_ownership_schema(app),
+                logger=logging.getLogger(__name__),
+            )
         ensure_bootstrap_admin(app)
         recover_interrupted_jobs_impl(db, DetectTask, TrainJob, logger=logging.getLogger(__name__))
 
