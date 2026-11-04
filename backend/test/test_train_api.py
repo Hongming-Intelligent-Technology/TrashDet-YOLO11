@@ -9,6 +9,8 @@ from flask import Flask
 
 from api.train_api import train_bp
 from api.train_helpers import _job_lock, _job_state
+from database.db import db
+from database.models import TrainJob
 
 
 class TrainApiTestCase(unittest.TestCase):
@@ -20,8 +22,13 @@ class TrainApiTestCase(unittest.TestCase):
             'BASE_DIR': self.temp_dir.name,
             'YOLO_MODEL_PATH': os.path.join(self.temp_dir.name, 'default.pt'),
             'TRAIN_MAX_CONTENT_LENGTH': 64 * 1024 * 1024,
+            'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
+            'SQLALCHEMY_TRACK_MODIFICATIONS': False,
         })
+        db.init_app(self.app)
         self.app.register_blueprint(train_bp, url_prefix='/api/train')
+        with self.app.app_context():
+            db.create_all()
 
         with open(self.app.config['YOLO_MODEL_PATH'], 'wb') as fp:
             fp.write(b'fake-pt')
@@ -31,6 +38,10 @@ class TrainApiTestCase(unittest.TestCase):
 
     def tearDown(self):
         self._reset_jobs()
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+            db.engine.dispose()
         self.temp_dir.cleanup()
 
     def _reset_jobs(self):
@@ -163,6 +174,49 @@ class TrainApiTestCase(unittest.TestCase):
         active_payload = active_response.get_json()
         self.assertTrue(active_payload.get('ok'))
         self.assertEqual(active_payload['job']['job_id'], job_id)
+
+    def _start_job(self):
+        response = self.client.post(
+            '/api/train/start',
+            data={
+                'dataset_zip': (self._build_dataset_zip_bytes(), 'dataset.zip'),
+                'data_yaml': 'data.yaml',
+            },
+            content_type='multipart/form-data',
+        )
+        self.assertEqual(response.status_code, 200)
+        return response.get_json()['job_id']
+
+    @patch('api.train_api.threading.Thread')
+    def test_started_job_is_persisted(self, _mock_thread_cls):
+        job_id = self._start_job()
+
+        with self.app.app_context():
+            row = db.session.get(TrainJob, job_id)
+            self.assertIsNotNone(row)
+            self.assertEqual(row.status, 'queued')
+            self.assertIn('data.yaml', row.meta_json)
+
+    @patch('api.train_api.threading.Thread')
+    def test_status_survives_restart(self, _mock_thread_cls):
+        job_id = self._start_job()
+
+        # Simulate a process restart: in-memory state is gone, database remains.
+        self._reset_jobs()
+
+        status_response = self.client.get(f'/api/train/status/{job_id}')
+        self.assertEqual(status_response.status_code, 200)
+        job = status_response.get_json()['job']
+        self.assertEqual(job['job_id'], job_id)
+        self.assertEqual(job['status'], 'queued')
+        self.assertFalse(job['is_active'])
+
+        active_response = self.client.get('/api/train/status')
+        self.assertEqual(active_response.get_json()['job']['job_id'], job_id)
+
+    def test_unknown_job_returns_404(self):
+        response = self.client.get('/api/train/status/does-not-exist')
+        self.assertEqual(response.status_code, 404)
 
 
 if __name__ == '__main__':

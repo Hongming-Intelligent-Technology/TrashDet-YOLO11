@@ -23,6 +23,7 @@ from app_factory_services import (
     ensure_bootstrap_admin_impl,
     ensure_ownership_schema_impl,
     mask_database_uri,
+    recover_interrupted_jobs_impl,
     register_blueprints,
     register_error_handler,
     register_health_route,
@@ -30,7 +31,7 @@ from app_factory_services import (
 )
 from config import Config, load_yaml_runtime_overrides
 from database.db import db
-from database.models import User
+from database.models import DetectTask, TrainJob, User
 from api.detect_api import detect_bp
 from web.pages import web_bp
 from api.stats_api import stats_bp
@@ -99,6 +100,7 @@ def create_app(config_overrides=None):
         db.create_all()
         ensure_ownership_schema(app)
         ensure_bootstrap_admin(app)
+        recover_interrupted_jobs_impl(db, DetectTask, TrainJob, logger=logging.getLogger(__name__))
 
     register_blueprints(
         app,

@@ -151,6 +151,22 @@ class OpsLog(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 
+class TrainJob(db.Model):
+    """Persisted copy of a training job, so status survives a server restart."""
+
+    __tablename__ = 'train_jobs'
+
+    id = db.Column(db.String(32), primary_key=True)
+    status = db.Column(db.String(20), nullable=False, default='queued')
+    created_at = db.Column(db.String(32))
+    started_at = db.Column(db.String(32))
+    completed_at = db.Column(db.String(32))
+    error = db.Column(db.Text)
+    meta_json = db.Column(db.Text)
+    result_json = db.Column(db.Text)
+    logs_json = db.Column(db.Text)
+
+
 class RobotPatrolTask(db.Model):
     __tablename__ = 'robot_patrol_tasks'
 

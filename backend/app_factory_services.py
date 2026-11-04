@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 from flask import jsonify, request
@@ -112,6 +113,41 @@ def ensure_ownership_schema_impl(app, db_obj, logger=None):
     except Exception:
         db_obj.session.rollback()
         logger_obj.exception('Failed to patch ownership schema.')
+
+
+INTERRUPTED_MESSAGE = '服务重启，任务已中断，请重新提交。'
+
+
+def recover_interrupted_jobs_impl(db_obj, detect_task_model, train_job_model, logger=None):
+    """Mark jobs left unfinished by a previous process as failed.
+
+    Background work runs in threads of a single process, so anything still
+    pending at startup can never finish. Run the app with a single worker.
+    """
+    logger_obj = logger or logging.getLogger(__name__)
+    try:
+        stale_tasks = detect_task_model.query.filter(detect_task_model.status == 'PENDING').all()
+        for task in stale_tasks:
+            task.status = 'FAILED'
+            task.error_msg = INTERRUPTED_MESSAGE
+
+        stale_jobs = train_job_model.query.filter(train_job_model.status.in_(('queued', 'running'))).all()
+        now_iso = datetime.now().isoformat(timespec='seconds')
+        for job in stale_jobs:
+            job.status = 'failed'
+            job.error = INTERRUPTED_MESSAGE
+            job.completed_at = now_iso
+
+        if stale_tasks or stale_jobs:
+            db_obj.session.commit()
+            logger_obj.warning(
+                'Marked interrupted jobs as failed. detect_tasks=%s train_jobs=%s',
+                len(stale_tasks),
+                len(stale_jobs),
+            )
+    except Exception:
+        db_obj.session.rollback()
+        logger_obj.exception('Failed to recover interrupted jobs.')
 
 
 def mask_database_uri(database_uri):

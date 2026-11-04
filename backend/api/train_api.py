@@ -16,6 +16,8 @@ from api.train_helpers import (
     _now_iso,
     _parse_bool,
     _parse_int,
+    _load_persisted_job,
+    _persist_job,
     _run_training_job,
     _safe_extract_zip,
 )
@@ -138,6 +140,7 @@ def start_training():
 
     _append_log(job_id, f'任务已创建: {job_id}')
     _append_log(job_id, '数据集上传并解压完成，准备启动训练线程。')
+    _persist_job(job_id)
 
     app_obj = cast(Any, current_app)._get_current_object()
 
@@ -161,6 +164,9 @@ def start_training():
 def get_training_status(job_id):
     with _job_lock:
         job = _job_state['jobs'].get(job_id)
+    if not job:
+        # Not in memory (e.g. after a restart): fall back to the persisted copy.
+        job = _load_persisted_job(job_id)
     if not job:
         return jsonify({'ok': False, 'message': '训练任务不存在。'}), 404
 
@@ -195,6 +201,10 @@ def get_active_training_status():
                     key=lambda item: str(item.get('created_at') or ''),
                 )
                 job_id = latest_job.get('job_id')
+
+    if not job_id:
+        persisted_job = _load_persisted_job()
+        job_id = persisted_job['job_id'] if persisted_job else None
 
     if not job_id:
         return jsonify({'ok': True, 'job': None})

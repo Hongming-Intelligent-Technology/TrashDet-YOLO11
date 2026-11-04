@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import threading
@@ -9,6 +10,9 @@ try:
     from ultralytics import YOLO
 except ImportError:
     YOLO = None
+
+from database.db import db
+from database.models import TrainJob
 
 
 logger = logging.getLogger(__name__)
@@ -59,6 +63,69 @@ def _append_log(job_id, message):
             job['logs'] = job['logs'][-_MAX_LOG_LINES:]
 
 
+def _persist_job(job_id):
+    """Write the in-memory job state to the train_jobs table.
+
+    Must run inside an app context. Failures are logged but never interrupt training.
+    """
+    with _job_lock:
+        job = _job_state['jobs'].get(job_id)
+        snapshot = json.loads(json.dumps(job, default=str)) if job else None
+    if snapshot is None:
+        return
+
+    try:
+        row = db.session.get(TrainJob, job_id) or TrainJob(id=job_id)
+        row.status = snapshot['status']
+        row.created_at = snapshot['created_at']
+        row.started_at = snapshot['started_at']
+        row.completed_at = snapshot['completed_at']
+        row.error = snapshot['error']
+        row.meta_json = json.dumps(snapshot['meta'], ensure_ascii=False)
+        row.result_json = json.dumps(snapshot['result'], ensure_ascii=False)
+        row.logs_json = json.dumps(snapshot['logs'][-_MAX_LOG_LINES:], ensure_ascii=False)
+        db.session.add(row)
+        db.session.commit()
+    except Exception:
+        logger.exception('训练任务状态持久化失败 job_id=%s', job_id)
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+
+
+def _load_persisted_job(job_id=None):
+    """Return a job dict from the database (latest job if job_id is None), or None."""
+    try:
+        if job_id:
+            row = db.session.get(TrainJob, job_id)
+        else:
+            row = TrainJob.query.order_by(TrainJob.created_at.desc()).first()
+    except Exception:
+        logger.exception('读取训练任务失败 job_id=%s', job_id)
+        return None
+    if row is None:
+        return None
+
+    def _loads(raw, default):
+        try:
+            return json.loads(raw) if raw else default
+        except ValueError:
+            return default
+
+    return {
+        'job_id': row.id,
+        'status': row.status,
+        'created_at': row.created_at,
+        'started_at': row.started_at,
+        'completed_at': row.completed_at,
+        'error': row.error,
+        'logs': _loads(row.logs_json, []),
+        'result': _loads(row.result_json, {}),
+        'meta': _loads(row.meta_json, {}),
+    }
+
+
 def _safe_extract_zip(zip_path, target_dir):
     with zipfile.ZipFile(zip_path, 'r') as archive:
         for member in archive.infolist():
@@ -101,6 +168,7 @@ def _run_training_job(app, job_id, payload):
                 job = _job_state['jobs'][job_id]
                 job['status'] = 'running'
                 job['started_at'] = _now_iso()
+            _persist_job(job_id)
 
             train_kwargs = {
                 'data': yaml_path,
@@ -140,3 +208,4 @@ def _run_training_job(app, job_id, payload):
             with _job_lock:
                 if _job_state['active_job_id'] == job_id:
                     _job_state['active_job_id'] = None
+            _persist_job(job_id)

@@ -1,6 +1,6 @@
-# EcoGuard
+# TrashDet-YOLO11
 
-EcoGuard is a full-stack platform for waste inspection and cleaning robot operations, including:
+TrashDet-YOLO11 is a full-stack platform for waste inspection and cleaning robot operations, including:
 - Flask backend services (detection, statistics, robot control, training, authentication)
 - Vue 3 single-page frontend (SPA)
 - Robot firmware integration examples and local simulation scripts
@@ -81,6 +81,8 @@ After startup:
 
 Notes:
 - `db.create_all()` runs at startup.
+- Video detection and training run in background threads; their status is stored in the database, and unfinished jobs are marked as failed when the server restarts.
+- In production use a single worker (e.g. `gunicorn -w 1 --threads 8 "app:create_app()"`); multiple workers would split background job state.
 - If there are no users, a bootstrap admin account is auto-created (change credentials immediately in production).
 
 ## Frontend Development and Build
