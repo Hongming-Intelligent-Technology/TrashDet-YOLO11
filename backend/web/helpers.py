@@ -9,7 +9,6 @@ from flask import (
     redirect,
     render_template,
     request,
-    session,
 )
 from sqlalchemy.orm import selectinload
 
@@ -23,20 +22,10 @@ from .services_captcha import (
     _verify_captcha_payload,
 )
 from .utils import _normalize_secret
+from services.auth import get_session_user as _get_current_user, is_admin_user as _is_admin_user, login_required
 
 APP_TITLE = 'EcoGuard 垃圾拾捡机器人管理系统'
 DEFAULT_LOGIN_NEXT = '/'
-
-
-def _get_current_user():
-    user_id = session.get('user_id')
-    if not user_id:
-        return None
-    return db.session.get(User, user_id)
-
-
-def _is_admin_user(user):
-    return bool(user and getattr(user, 'role', '') == 'admin')
 
 
 def _find_user_by_username(username):
@@ -242,14 +231,7 @@ def _render_main_spa(next_path=None):
     return _render_spa(APP_TITLE, next_path=next_path)
 
 
-def api_login_required(view_func):
-    @wraps(view_func)
-    def wrapper(*args, **kwargs):
-        if not _get_current_user():
-            return jsonify({'ok': False, 'message': '请先登录'}), 401
-        return view_func(*args, **kwargs)
-
-    return wrapper
+api_login_required = login_required
 
 
 def _redirect_to_login_for_page(next_path=None):

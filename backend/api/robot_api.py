@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from threading import Lock
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from api.detect_helpers import lookup_address
 
 from api.robot_helpers import (
@@ -38,7 +38,8 @@ from api.robot_route_services import (
     validate_register_fields,
 )
 from database.db import db
-from database.models import Robot, RobotPatrolTask, User
+from database.models import Robot, RobotPatrolTask
+from services.auth import get_session_user as _get_session_user, is_admin_user as _is_admin_user
 
 
 robot_bp = Blueprint('robot_bp', __name__)
@@ -214,17 +215,6 @@ def _overlay_realtime_snapshot(robot_item, snapshot, timeout_seconds):
         'lng': snapshot.get('target_lng'),
     }
     return merged
-
-
-def _get_session_user():
-    user_id = session.get('user_id')
-    if not user_id:
-        return None
-    return db.session.get(User, user_id)
-
-
-def _is_admin_user(user):
-    return bool(user and getattr(user, 'role', '') == 'admin')
 
 
 def _require_ui_user():

@@ -3,7 +3,7 @@ import threading
 import uuid
 from typing import Any, cast
 
-from flask import Blueprint, current_app, jsonify, request, session
+from flask import Blueprint, current_app, jsonify, request
 
 from api.detect_helpers import (
     _HAS_CV2,
@@ -40,21 +40,11 @@ from api.detect_route_services import (
     parse_video_request,
 )
 from database.db import db
-from database.models import DetectTask, Robot, User
+from database.models import DetectTask, Robot
+from services.auth import get_session_user as _get_session_user, is_admin_user as _is_admin_user
 
 
 detect_bp = Blueprint('detect_bp', __name__)
-
-
-def _get_session_user():
-    user_id = session.get('user_id')
-    if not user_id:
-        return None
-    return db.session.get(User, user_id)
-
-
-def _is_admin_user(user):
-    return bool(user and getattr(user, 'role', '') == 'admin')
 
 
 def _resolve_task_owner_user_id(device_id=None):

@@ -4,13 +4,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 import requests
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from sqlalchemy.exc import SQLAlchemyError
 
 from api.stats_hotspot_service import build_hotspot_payload
 from api.stats_summary_service import build_summary_payload
 from database.db import db
-from database.models import User
+from services.auth import get_session_user as _get_session_user, is_admin_user as _is_admin_user
 
 stats_bp = Blueprint('stats_bp', __name__)
 logger = logging.getLogger(__name__)
@@ -47,17 +47,6 @@ _EMPTY_REGION = {
 
 def _copy_payload_for_cache(payload):
     return dict(payload) if isinstance(payload, dict) else payload
-
-
-def _is_admin_user(user):
-    return bool(user and getattr(user, 'role', '') == 'admin')
-
-
-def _get_session_user():
-    user_id = session.get('user_id')
-    if not user_id:
-        return None
-    return db.session.get(User, user_id)
 
 
 def _require_session_user():
