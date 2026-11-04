@@ -1,0 +1,7 @@
+# Only flag real bugs for now (syntax errors, undefined names, invalid comparisons).
+# Widen this selection gradually, e.g. add "F401" (unused imports) once the code is cleaned up.
+target-version = "py310"
+extend-exclude = ["model"]
+
+[lint]
+select = ["E9", "F63", "F7", "F82"]
