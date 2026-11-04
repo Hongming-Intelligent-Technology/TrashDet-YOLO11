@@ -84,7 +84,7 @@ Notes:
 - After changing models, generate a migration with `cd backend && flask --app app:create_app db migrate -m "message"`.
 - Video detection and training run in background threads; their status is stored in the database, and unfinished jobs are marked as failed when the server restarts.
 - In production use a single worker (e.g. `gunicorn -w 1 --threads 8 "app:create_app()"`); multiple workers would split background job state.
-- If there are no users, a bootstrap admin account is auto-created (change credentials immediately in production).
+- If there are no users, a bootstrap admin account is auto-created: username `admin` by default, password and security code from `ECOGUARD_ADMIN_PASSWORD` / `ECOGUARD_ADMIN_SECURITY_CODE`; if unset they are generated randomly and printed once in the startup log (change them after logging in).
 
 ## Frontend Development and Build
 
@@ -167,7 +167,7 @@ Web session and data APIs (excerpt):
 ## Model and Training Workflow
 
 - Inference implementation is in `backend/inference/yolo_detector.py`.
-- Training is triggered asynchronously by `POST /api/train/start`.
+- Training is triggered asynchronously by `POST /api/train/start`; only admins can start it (uploaded weights and dataset configs can execute code when loaded).
 - Dataset upload requires ZIP; custom `.pt` weight upload is supported.
 - Job result includes output folder and a best-weight hint path.
 

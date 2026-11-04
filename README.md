@@ -84,7 +84,7 @@ python app.py
 - 修改模型后生成迁移：`cd backend && flask --app app:create_app db migrate -m "说明"`。
 - 视频检测与模型训练在后台线程中运行，状态保存在数据库；服务重启时未完成的任务会被标记为失败。
 - 生产部署请使用单个 worker（例如 `gunicorn -w 1 --threads 8 "app:create_app()"`），多 worker 会导致后台任务状态不一致。
-- 若数据库中无用户，会自动创建引导管理员账号（请在生产环境立即改密）。
+- 若数据库中无用户，会自动创建引导管理员账号：用户名默认 `admin`，密码和安全码取自 `ECOGUARD_ADMIN_PASSWORD` / `ECOGUARD_ADMIN_SECURITY_CODE`；未设置时随机生成，并在启动日志中打印一次（请登录后立即修改）。
 
 ## 前端开发与构建
 
@@ -167,7 +167,7 @@ Web 会话与业务接口（节选）：
 ## 模型与训练
 
 - 推理器位于 `backend/inference/yolo_detector.py`。
-- 训练任务通过 `POST /api/train/start` 异步执行。
+- 训练任务通过 `POST /api/train/start` 异步执行，仅管理员可启动（上传的权重和数据集配置在加载时可以执行代码）。
 - 训练数据需上传 ZIP，支持自定义权重 `.pt`。
 - 返回结果中会包含训练产出目录与权重提示路径。
 

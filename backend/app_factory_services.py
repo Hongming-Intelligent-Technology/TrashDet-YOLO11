@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+import secrets
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
@@ -31,8 +32,15 @@ def ensure_bootstrap_admin_impl(app, db_obj, user_model, os_module=os, logger=No
             return
 
         username = os_module.getenv('ECOGUARD_ADMIN_USERNAME', 'admin').strip() or 'admin'
-        password = os_module.getenv('ECOGUARD_ADMIN_PASSWORD', 'admin123456').strip() or 'admin123456'
-        security_code = os_module.getenv('ECOGUARD_ADMIN_SECURITY_CODE', '0000').strip() or '0000'
+        password = os_module.getenv('ECOGUARD_ADMIN_PASSWORD', '').strip()
+        security_code = os_module.getenv('ECOGUARD_ADMIN_SECURITY_CODE', '').strip()
+        generated = []
+        if not password:
+            password = secrets.token_urlsafe(12)
+            generated.append(f'password={password}')
+        if not security_code:
+            security_code = f'{secrets.randbelow(10 ** 6):06d}'
+            generated.append(f'security_code={security_code}')
 
         admin_user = user_model(username=username, role='admin')
         admin_user.set_password(password)
@@ -45,6 +53,9 @@ def ensure_bootstrap_admin_impl(app, db_obj, user_model, os_module=os, logger=No
             'Please change credentials immediately. username=%s',
             username,
         )
+        if generated:
+            # Printed once so the operator can log in; set ECOGUARD_ADMIN_* to choose them instead.
+            logger_obj.warning('Generated bootstrap admin credentials: %s', ' '.join(generated))
     except Exception:
         db_obj.session.rollback()
         logger_obj.exception('Failed to create bootstrap admin account.')

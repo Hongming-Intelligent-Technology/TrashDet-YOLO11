@@ -149,6 +149,12 @@ def login_page_compat():
         flash(error.message, 'error')
         return redirect('/login')
 
+    # Same captcha check as the JSON login, so this form route cannot bypass it.
+    captcha_ok, captcha_error, _captcha_meta = _verify_captcha_payload(request.form)
+    if not captcha_ok:
+        flash(captcha_error, 'error')
+        return redirect('/login')
+
     try:
         user = authenticate_user(username, password, _find_user_by_username)
     except AuthValidationError as error:

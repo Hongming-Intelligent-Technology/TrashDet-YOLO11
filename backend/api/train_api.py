@@ -6,6 +6,8 @@ from typing import Any, cast
 from flask import Blueprint, current_app, jsonify, request
 from werkzeug.utils import secure_filename
 
+from services.auth import admin_required, login_required
+
 from api.train_helpers import (
     _ALLOWED_WEIGHT_EXTENSIONS,
     _ALLOWED_ZIP_EXTENSIONS,
@@ -36,6 +38,7 @@ train_bp = Blueprint('train_bp', __name__)
 
 
 @train_bp.route('/config', methods=['GET'])
+@login_required
 def get_training_config():
     train_max_content_length = current_app.config.get('TRAIN_MAX_CONTENT_LENGTH')
     return jsonify({
@@ -51,7 +54,9 @@ def get_training_config():
 
 
 @train_bp.route('/start', methods=['POST'])
+@admin_required
 def start_training():
+    # Admin only: uploaded .pt weights and dataset YAML files can execute code when loaded.
     train_max_content_length = current_app.config.get('TRAIN_MAX_CONTENT_LENGTH')
     request_content_length = request.content_length or 0
     if isinstance(train_max_content_length, int) and train_max_content_length > 0:
@@ -161,6 +166,7 @@ def start_training():
 
 
 @train_bp.route('/status/<job_id>', methods=['GET'])
+@login_required
 def get_training_status(job_id):
     with _job_lock:
         job = _job_state['jobs'].get(job_id)
@@ -190,6 +196,7 @@ def get_training_status(job_id):
 
 
 @train_bp.route('/status', methods=['GET'])
+@login_required
 def get_active_training_status():
     with _job_lock:
         job_id = _job_state.get('active_job_id')

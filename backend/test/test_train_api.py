@@ -10,7 +10,7 @@ from flask import Flask
 from api.train_api import train_bp
 from api.train_helpers import _job_lock, _job_state
 from database.db import db
-from database.models import TrainJob
+from database.models import TrainJob, User
 
 
 class TrainApiTestCase(unittest.TestCase):
@@ -19,6 +19,7 @@ class TrainApiTestCase(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.config.update({
             'TESTING': True,
+            'SECRET_KEY': 'test-secret',
             'BASE_DIR': self.temp_dir.name,
             'YOLO_MODEL_PATH': os.path.join(self.temp_dir.name, 'default.pt'),
             'TRAIN_MAX_CONTENT_LENGTH': 64 * 1024 * 1024,
@@ -29,12 +30,30 @@ class TrainApiTestCase(unittest.TestCase):
         self.app.register_blueprint(train_bp, url_prefix='/api/train')
         with self.app.app_context():
             db.create_all()
+            admin = User(username='admin_user', role='admin')
+            admin.set_password('password123')
+            admin.set_security_code('0001')
+            member = User(username='member_user', role='user')
+            member.set_password('password123')
+            member.set_security_code('0002')
+            db.session.add_all([admin, member])
+            db.session.commit()
+            self.admin_id = admin.id
+            self.member_id = member.id
 
         with open(self.app.config['YOLO_MODEL_PATH'], 'wb') as fp:
             fp.write(b'fake-pt')
 
         self.client = self.app.test_client()
+        self._login_as(self.admin_id)
         self._reset_jobs()
+
+    def _login_as(self, user_id):
+        with self.client.session_transaction() as sess:
+            if user_id is None:
+                sess.pop('user_id', None)
+            else:
+                sess['user_id'] = user_id
 
     def tearDown(self):
         self._reset_jobs()
@@ -213,6 +232,33 @@ class TrainApiTestCase(unittest.TestCase):
 
         active_response = self.client.get('/api/train/status')
         self.assertEqual(active_response.get_json()['job']['job_id'], job_id)
+
+    @patch('api.train_api.threading.Thread')
+    def test_start_requires_admin(self, mock_thread_cls):
+        self._login_as(None)
+        anonymous = self.client.post(
+            '/api/train/start',
+            data={'dataset_zip': (self._build_dataset_zip_bytes(), 'dataset.zip')},
+            content_type='multipart/form-data',
+        )
+        self.assertEqual(anonymous.status_code, 401)
+
+        self._login_as(self.member_id)
+        member = self.client.post(
+            '/api/train/start',
+            data={'dataset_zip': (self._build_dataset_zip_bytes(), 'dataset.zip')},
+            content_type='multipart/form-data',
+        )
+        self.assertEqual(member.status_code, 403)
+        mock_thread_cls.assert_not_called()
+
+    def test_status_and_config_require_login(self):
+        self._login_as(None)
+        for url in ('/api/train/status', '/api/train/status/abc', '/api/train/config'):
+            self.assertEqual(self.client.get(url).status_code, 401, url)
+
+        self._login_as(self.member_id)
+        self.assertEqual(self.client.get('/api/train/status').status_code, 200)
 
     def test_unknown_job_returns_404(self):
         response = self.client.get('/api/train/status/does-not-exist')

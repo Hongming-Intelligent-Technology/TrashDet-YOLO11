@@ -118,7 +118,8 @@ export default function TrainPage() {
       .then((payload) => {
         if (cancelled) return
         setCurrentJob(payload.job || null)
-        if (payload.job) {
+        // Only follow a job that is still running; a finished one is just displayed.
+        if (payload.job && !isFinished(payload.job.status)) {
           startPolling(payload.job.job_id)
         }
       })

@@ -1,6 +1,7 @@
 import { Suspense, useEffect, type ReactNode } from 'react'
 import { Link, Navigate, Route, Routes, matchPath, useLocation, useNavigate } from 'react-router'
 import { errorMessage, postJson } from './lib/api'
+import Toaster from './components/Toaster'
 import { appRoutes, type RouteMeta } from './routes'
 import { clearSessionUser, ensureSession, pushFlash, useSession } from './stores/session'
 import './AppLayout.css'
@@ -129,6 +130,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </div>
+      <Toaster />
     </div>
   )
 }

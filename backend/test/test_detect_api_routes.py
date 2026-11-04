@@ -102,6 +102,15 @@ class DetectApiRoutesTestCase(unittest.TestCase):
             self.assertEqual(DetectTask.query.count(), 0)
             self.assertEqual(DetectItem.query.count(), 0)
 
+    @patch('api.detect_api.save_uploaded_file')
+    def test_detect_image_rejects_oversized_upload_before_saving(self, mock_save):
+        self.app.config['IMAGE_MAX_CONTENT_LENGTH'] = 1024
+        data = {'image': (io.BytesIO(b'x' * (200 * 1024)), 'big.jpg')}
+        resp = self.client.post('/api/detect', data=data, content_type='multipart/form-data')
+        self.assertEqual(resp.status_code, 413)
+        self.assertFalse(resp.get_json().get('ok'))
+        mock_save.assert_not_called()
+
     def test_detect_image_missing_file(self):
         resp = self.client.post('/api/detect', data={}, content_type='multipart/form-data')
         self.assertEqual(resp.status_code, 400)

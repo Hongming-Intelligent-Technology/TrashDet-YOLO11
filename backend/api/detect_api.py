@@ -130,8 +130,24 @@ def ingest_detection_result():
     })
 
 
+# Allowance for multipart boundaries and the small form fields sent with the file.
+_FORM_OVERHEAD_BYTES = 64 * 1024
+
+
+def _reject_oversized_request(limit_key, default_limit, label):
+    """413 response if the request body is larger than the file limit, before anything is read."""
+    limit = current_app.config.get(limit_key, default_limit)
+    if request.content_length and request.content_length > limit + _FORM_OVERHEAD_BYTES:
+        return jsonify({'ok': False, 'message': f'{label}超过大小限制 ({limit // (1024 * 1024)} MB)'}), 413
+    return None
+
+
 @detect_bp.route("/detect", methods=["POST"])
 def detect_image():
+    oversized = _reject_oversized_request('IMAGE_MAX_CONTENT_LENGTH', 10 * 1024 * 1024, '图片文件')
+    if oversized:
+        return oversized
+
     dependency_error = get_detection_runtime_error(require_video=False)
     if dependency_error:
         return json_error(dependency_error, 503)
@@ -278,6 +294,10 @@ def _process_video_background(app, task_id, source_abs_path, conf_thres, frame_s
 
 @detect_bp.route('/detect/video', methods=['POST'])
 def detect_video():
+    oversized = _reject_oversized_request('VIDEO_MAX_CONTENT_LENGTH', 200 * 1024 * 1024, '视频文件')
+    if oversized:
+        return oversized
+
     dependency_error = get_detection_runtime_error(require_video=True)
     if dependency_error:
         return json_error(dependency_error, 503)

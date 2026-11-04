@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { getJson, postJson } from '../lib/api'
+import { showToast } from './toasts'
 
 export interface SessionUser {
   id: number
@@ -88,12 +89,13 @@ export function clearSessionUser() {
   return applySessionUser(null)
 }
 
-/** Report a user-facing message to the backend log (no front-end popup queue). */
+/** Show a message to the user and record it in the backend log. */
 export function pushFlash(message: unknown, category = 'success') {
   const text = String(message || '').trim()
   if (!text) {
     return
   }
+  showToast(text, category)
   postJson('/api/web/client-log', {
     message: text,
     category,

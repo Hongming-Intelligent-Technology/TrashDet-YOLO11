@@ -88,16 +88,25 @@ def _load_task_with_items(task_id, current_user=None):
     return query.first_or_404()
 
 
+def _resolve_deletable_path(relative_path):
+    """Absolute path for a stored task file, or None if it is not inside the static folder.
+
+    Paths come from the database and, for /api/detect/ingest, from the client,
+    so anything outside static/ (absolute paths, ../ traversal) is never deleted.
+    """
+    if not relative_path or os.path.isabs(relative_path):
+        return None
+    static_root = os.path.realpath(current_app.config.get('STATIC_DIR') or os.path.join(current_app.root_path, 'static'))
+    candidate = os.path.realpath(os.path.join(current_app.root_path, relative_path))
+    if os.path.commonpath([static_root, candidate]) != static_root:
+        return None
+    return candidate
+
+
 def _delete_task_files(task):
     for relative_path in (task.source_path, task.result_path):
-        if not relative_path:
-            continue
-        normalized_path = os.path.normpath(relative_path)
-        if os.path.isabs(normalized_path):
-            absolute_path = normalized_path
-        else:
-            absolute_path = os.path.normpath(os.path.join(current_app.root_path, normalized_path))
-        if os.path.isfile(absolute_path):
+        absolute_path = _resolve_deletable_path(relative_path)
+        if absolute_path and os.path.isfile(absolute_path):
             try:
                 os.remove(absolute_path)
             except OSError:
