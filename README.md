@@ -10,7 +10,7 @@ It uses the [Ultralytics](https://github.com/ultralytics/ultralytics) package as
 - Base framework: Ultralytics YOLO (installed via pip, pinned in requirements.txt)
 - Main use case: custom trash detection model training and deployment
 - Pretrained weights: yolo11n.pt / yolo11s.pt are downloaded automatically by Ultralytics
-- Trained weights: download best.pt from the GitHub Releases page
+- Trained weights: weights/best.pt
 - Custom script: train.py (argument-based training launcher)
 
 ## Requirements
@@ -93,7 +93,7 @@ yolo detect train data=/path/to/trash.yaml model=yolo11n.pt epochs=100 imgsz=640
 ### Script
 
 ```bash
-python predict.py --weights best.pt --source /path/to/image_or_video
+python predict.py --weights weights/best.pt --source /path/to/image_or_video
 ```
 
 ### CLI
@@ -130,6 +130,7 @@ yolo export model=runs/train/trash-yolo11n/weights/best.pt format=onnx
 
 - train.py: custom training entrypoint
 - predict.py: inference script
+- weights/: trained model weights
 - data/trash.yaml: dataset config
 - assets/: demo and result images
 - requirements.txt: pinned dependencies

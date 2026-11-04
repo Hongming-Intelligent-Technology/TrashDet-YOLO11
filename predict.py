@@ -5,7 +5,7 @@ from ultralytics import YOLO
 
 def parse_args():
     parser = ArgumentParser(description="Run trash detection on images, videos, folders, or a webcam")
-    parser.add_argument("--weights", default="best.pt", help="Trained weight path (download best.pt from Releases)")
+    parser.add_argument("--weights", default="weights/best.pt", help="Trained weight path")
     parser.add_argument("--source", required=True, help="Image/video/folder path, URL, or 0 for webcam")
     parser.add_argument("--imgsz", type=int, default=640, help="Inference image size")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")

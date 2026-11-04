@@ -11,10 +11,12 @@ runs/
 data/**/images/
 data/**/labels/
 
-# Weights: publish best.pt via GitHub Releases instead of committing it
+# Weights: only files in weights/ are committed (keep each under 100 MB for GitHub)
 *.pt
 *.onnx
 *.engine
+!weights/*.pt
+!weights/*.onnx
 
 # OS / IDE
 .DS_Store
