@@ -1,5 +1,23 @@
-# Vue 3 + Vite
+# TrashDet frontend
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+React 19 + TypeScript single-page app, built with Vite and served by the Flask backend.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+```bash
+npm install
+npm run dev        # dev server; proxies /api and /static to http://127.0.0.1:5000 (override with VITE_BACKEND_URL)
+npm run typecheck  # tsc --noEmit
+npm run build      # type-check, then build into ../backend/static/spa (commit the result)
+```
+
+## Layout
+
+- `src/main.tsx`: entry point; `src/App.tsx`: layout, navigation and the login guard
+- `src/routes.tsx`: routes and their page titles / auth requirements
+- `src/views/`: one component per page; `Page.css` next to a page holds its styles,
+  scoped under a `scope-*` class on the page's root element
+- `src/lib/`: API client, map helpers, patrol-task geometry
+- `src/stores/session.ts`: logged-in user (`useSession()` hook)
+- `src/hooks/`, `src/components/`: shared hooks and small components
+- `src/app.css` and `public/css/`: global styles
+
+Maps use Leaflet and charts use ECharts directly; both are created in `useEffect` and disposed on unmount.

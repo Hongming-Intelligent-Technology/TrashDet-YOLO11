@@ -2,7 +2,7 @@
 
 TrashDet-YOLO11 is a full-stack platform for waste inspection and cleaning robot operations, including:
 - Flask backend services (detection, statistics, robot control, training, authentication)
-- Vue 3 single-page frontend (SPA)
+- React 19 + TypeScript single-page frontend (SPA)
 - Robot firmware integration examples and local simulation scripts
 
 The project is designed as an end-to-end loop from image capture and garbage detection to data storage, hotspot analytics, robot scheduling, and model retraining.
@@ -44,7 +44,7 @@ EcoGuard/
 │  ├─ model/runs/train/      # Trained model (best.pt and training plots)
 │  ├─ test/                  # Backend unit tests
 │  └─ requirements.txt       # Python dependencies
-├─ frontend/                 # Vue 3 + Vite frontend
+├─ frontend/                 # React + TypeScript + Vite frontend
 │  ├─ src/
 │  ├─ package.json
 │  └─ vite.config.js         # Build output: backend/static/spa

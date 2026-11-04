@@ -1,0 +1,563 @@
+/* Styles for this page, scoped under .scope-user-admin (converted from the Vue scoped <style>). */
+.user-admin-body:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 14px;
+}
+
+.user-page-head:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 110, 89, 0.22);
+  background: linear-gradient(145deg, rgba(245, 252, 249, 0.88), rgba(229, 245, 238, 0.78));
+}
+
+.user-page-subtitle:is(.scope-user-admin, .scope-user-admin *) {
+  margin: 6px 0 0;
+  color: #4d766d;
+  font-size: 12px;
+}
+
+.head-right:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-badge:is(.scope-user-admin, .scope-user-admin *) {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(22, 116, 93, 0.34);
+  padding: 6px 10px;
+  color: #145647;
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.error-banner:is(.scope-user-admin, .scope-user-admin *) {
+  border-radius: 10px;
+  border: 1px solid rgba(185, 57, 70, 0.38);
+  background: rgba(251, 235, 237, 0.92);
+  color: #8a2e39;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.user-summary:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summary-item:is(.scope-user-admin, .scope-user-admin *) {
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid rgba(27, 110, 88, 0.16);
+  background: linear-gradient(160deg, rgba(245, 252, 249, 0.9), rgba(237, 249, 244, 0.72));
+  box-shadow: 0 8px 18px rgba(31, 109, 90, 0.08);
+}
+
+.summary-label:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 12px;
+  color: #4d766d;
+}
+
+.summary-value:is(.scope-user-admin, .scope-user-admin *) {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #17463d;
+}
+
+.user-main-grid:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.5fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.user-self-layout:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.05fr) minmax(260px, 0.95fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.self-profile-card:is(.scope-user-admin, .scope-user-admin *),
+.self-assets-card:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-card-head:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 108, 88, 0.14);
+  background: linear-gradient(145deg, rgba(244, 252, 248, 0.92), rgba(233, 246, 239, 0.82));
+}
+
+.profile-avatar:is(.scope-user-admin, .scope-user-admin *) {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: #125745;
+  border: 1px solid rgba(18, 110, 89, 0.25);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(182, 230, 211, 0.95));
+}
+
+.profile-head-texts:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.profile-username:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 14px;
+  font-weight: 700;
+  color: #184d42;
+}
+
+.profile-meta:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.profile-tag:is(.scope-user-admin, .scope-user-admin *) {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #2c6257;
+  background: rgba(94, 157, 139, 0.18);
+}
+
+.self-profile-form:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 10px;
+}
+
+.assets-head:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.asset-section:is(.scope-user-admin, .scope-user-admin *) {
+  border: 1px solid rgba(20, 108, 88, 0.14);
+  border-radius: 12px;
+  background: rgba(248, 253, 250, 0.76);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.asset-section-head:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.asset-section-head h4:is(.scope-user-admin, .scope-user-admin *) {
+  margin: 0;
+  font-size: 14px;
+  color: #184d42;
+}
+
+.asset-list:is(.scope-user-admin, .scope-user-admin *) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.asset-item:is(.scope-user-admin, .scope-user-admin *) {
+  border-radius: 10px;
+  border: 1px solid rgba(20, 108, 88, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.asset-main:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 4px;
+}
+
+.asset-title:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 13px;
+  font-weight: 700;
+  color: #184d42;
+}
+
+.asset-meta:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 12px;
+  color: #58786f;
+  line-height: 1.45;
+}
+
+.asset-actions:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.self-square-btn:is(.scope-user-admin, .scope-user-admin *) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: linear-gradient(145deg, #158966, #136f80);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+}
+
+.self-square-btn:hover:is(.scope-user-admin, .scope-user-admin *) {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 8px 16px rgba(20, 99, 88, 0.22);
+}
+
+.self-square-btn:disabled:is(.scope-user-admin, .scope-user-admin *) {
+  opacity: 0.64;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.self-square-btn-danger:is(.scope-user-admin, .scope-user-admin *) {
+  background: linear-gradient(145deg, #bf4f45, #9f3f37);
+}
+
+.self-square-btn-danger:hover:is(.scope-user-admin, .scope-user-admin *) {
+  box-shadow: 0 8px 16px rgba(159, 63, 55, 0.24);
+}
+
+.self-overview-grid:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.overview-item:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 108, 88, 0.14);
+  background: linear-gradient(150deg, rgba(248, 253, 250, 0.94), rgba(239, 249, 244, 0.88));
+}
+
+.overview-label:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 11px;
+  color: #5f7c75;
+}
+
+.overview-value:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 14px;
+  font-weight: 700;
+  color: #184d42;
+}
+
+.self-tips:is(.scope-user-admin, .scope-user-admin *) {
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px dashed rgba(27, 110, 88, 0.28);
+  background: rgba(246, 252, 249, 0.9);
+}
+
+.tip-title:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a5b4d;
+  margin-bottom: 4px;
+}
+
+.self-tips p:is(.scope-user-admin, .scope-user-admin *) {
+  margin: 0;
+  font-size: 12px;
+  color: #4d766d;
+}
+
+.user-create:is(.scope-user-admin, .scope-user-admin *),
+.user-list:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 10px;
+}
+
+.card-surface:is(.scope-user-admin, .scope-user-admin *) {
+  border-radius: 12px;
+  border: 1px solid rgba(27, 110, 88, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 12px;
+  box-shadow: 0 10px 24px rgba(35, 105, 88, 0.08);
+}
+
+.create-grid:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.create-actions:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  align-items: end;
+}
+
+.edit-form-grid:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 10px;
+}
+
+.edit-actions:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.user-list-shell:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(26, 113, 91, 0.14);
+  border-radius: 12px;
+  background: rgba(247, 253, 250, 0.66);
+  padding: 8px;
+}
+
+.user-list-head:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.1fr) minmax(170px, 1fr) minmax(120px, 0.7fr) minmax(220px, 1fr);
+  gap: 10px;
+  padding: 8px 12px;
+  color: #5c7b72;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(232, 247, 240, 0.82), rgba(243, 252, 248, 0.72));
+}
+
+.col-right:is(.scope-user-admin, .scope-user-admin *) {
+  text-align: right;
+}
+
+.user-list-rows:is(.scope-user-admin, .scope-user-admin *) {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.user-list-row:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.1fr) minmax(170px, 1fr) minmax(120px, 0.7fr) minmax(220px, 1fr);
+  gap: 10px;
+  align-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(21, 116, 92, 0.2);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.96), rgba(244, 252, 248, 0.9));
+  padding: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-list-row:hover:is(.scope-user-admin, .scope-user-admin *) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(17, 113, 89, 0.16);
+}
+
+.user-col:is(.scope-user-admin, .scope-user-admin *) {
+  min-width: 0;
+}
+
+.edit-modal-mask:is(.scope-user-admin, .scope-user-admin *) {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(6, 31, 25, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+.edit-modal-card:is(.scope-user-admin, .scope-user-admin *) {
+  width: min(560px, 100%);
+  display: grid;
+  gap: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 109, 88, 0.26);
+  box-shadow: 0 18px 44px rgba(10, 60, 49, 0.24);
+}
+
+.edit-modal-fade-enter-active:is(.scope-user-admin, .scope-user-admin *),
+.edit-modal-fade-leave-active:is(.scope-user-admin, .scope-user-admin *) {
+  transition: opacity 180ms ease;
+}
+
+.edit-modal-fade-enter-from:is(.scope-user-admin, .scope-user-admin *),
+.edit-modal-fade-leave-to:is(.scope-user-admin, .scope-user-admin *) {
+  opacity: 0;
+}
+
+.user-item-name:is(.scope-user-admin, .scope-user-admin *) {
+  color: #184d42;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-item-id:is(.scope-user-admin, .scope-user-admin *) {
+  font-size: 12px;
+  color: #5e7c74;
+}
+
+.user-mainline:is(.scope-user-admin, .scope-user-admin *) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-texts:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.edit-inline-block:is(.scope-user-admin, .scope-user-admin *) {
+  display: grid;
+  gap: 4px;
+}
+
+.edit-input:is(.scope-user-admin, .scope-user-admin *) {
+  width: 100%;
+  min-height: 32px;
+  border-radius: 8px;
+}
+
+.user-avatar:is(.scope-user-admin, .scope-user-admin *) {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #125745;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(182, 230, 211, 0.92));
+  border: 1px solid rgba(18, 110, 89, 0.25);
+}
+
+.current-tag:is(.scope-user-admin, .scope-user-admin *) {
+  margin-left: 6px;
+  font-size: 10px;
+  color: #0e5f4d;
+  background: rgba(16, 127, 100, 0.14);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.role-admin:is(.scope-user-admin, .scope-user-admin *),
+.role-user:is(.scope-user-admin, .scope-user-admin *) {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.organization-tag:is(.scope-user-admin, .scope-user-admin *) {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2a6256;
+  background: rgba(110, 177, 158, 0.18);
+}
+
+.role-admin:is(.scope-user-admin, .scope-user-admin *) {
+  color: #0f5a46;
+  background: rgba(23, 144, 111, 0.18);
+}
+
+.role-user:is(.scope-user-admin, .scope-user-admin *) {
+  color: #6a522f;
+  background: rgba(214, 152, 71, 0.18);
+}
+
+.user-col-actions .btn-detail:is(.scope-user-admin, .scope-user-admin *),
+.user-col-actions .btn-delete:is(.scope-user-admin, .scope-user-admin *) {
+  min-height: 34px;
+  padding: 0 12px;
+}
+
+.user-row-pop-enter-active:is(.scope-user-admin, .scope-user-admin *) {
+  animation: user-row-pop 320ms ease;
+}
+
+@keyframes user-row-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 980px) {
+
+  .user-summary:is(.scope-user-admin, .scope-user-admin *),
+.user-main-grid:is(.scope-user-admin, .scope-user-admin *),
+.user-self-layout:is(.scope-user-admin, .scope-user-admin *) {
+    grid-template-columns: 1fr;
+  }
+
+  .user-list-head:is(.scope-user-admin, .scope-user-admin *) {
+    display: none;
+  }
+
+  .user-list-row:is(.scope-user-admin, .scope-user-admin *) {
+    grid-template-columns: 1fr;
+  }
+
+  .user-col-actions:is(.scope-user-admin, .scope-user-admin *) {
+    justify-content: flex-start;
+  }
+
+  .self-overview-grid:is(.scope-user-admin, .scope-user-admin *) {
+    grid-template-columns: 1fr;
+  }
+}

@@ -2,7 +2,7 @@
 
 TrashDet-YOLO11 是一个面向垃圾巡检与保洁机器人场景的全栈平台，包含：
 - 后端 Flask 服务（检测、统计、机器人、训练、认证）
-- 前端 Vue 3 单页应用（SPA）
+- 前端 React 19 + TypeScript 单页应用（SPA）
 - 机器人固件集成示例与本地仿真脚本
 
 项目目标是打通从图像采集、垃圾识别、任务入库、热点统计到机器人调度与模型迭代训练的完整闭环。
@@ -44,7 +44,7 @@ TrashDet-YOLO11/
 │  ├─ model/runs/train/      # 训练好的模型（best.pt 与训练结果图）
 │  ├─ test/                  # 后端单元测试
 │  └─ requirements.txt       # Python 依赖
-├─ frontend/                 # Vue 3 + Vite 前端
+├─ frontend/                 # React + TypeScript + Vite 前端
 │  ├─ src/
 │  ├─ package.json
 │  └─ vite.config.js         # build 输出到 backend/static/spa

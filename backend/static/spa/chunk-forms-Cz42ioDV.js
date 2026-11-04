@@ -1,0 +1,1 @@
+function e(e){return Object.fromEntries(Object.entries(e).map(([e,t])=>[e,typeof t==`string`?t.trim():t]))}function t(e){return t=>n=>{let r=n.target,i=r instanceof HTMLInputElement&&r.type===`checkbox`?r.checked:r.value;e(e=>({...e,[t]:i}))}}export{e as n,t};

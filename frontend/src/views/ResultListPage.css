@@ -1,0 +1,10 @@
+/* Styles for this page, scoped under .scope-result-list (converted from the Vue scoped <style>). */
+.result-list-page .result-list-square-btn:is(.scope-result-list, .scope-result-list *) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 6px;
+  text-decoration: none;
+}

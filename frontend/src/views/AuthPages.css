@@ -1,0 +1,146 @@
+/* Styles for the login and register pages, scoped under .scope-auth (converted from the Vue scoped <style>). */
+.auth-shell:is(.scope-auth, .scope-auth *) {
+  min-height: 100vh;
+  width: 100%;
+  display: grid;
+  align-items: center;
+  padding: 20px clamp(14px, 3vw, 34px);
+}
+
+.auth-surface:is(.scope-auth, .scope-auth *) {
+  width: min(1120px, 100%);
+  min-height: min(86vh, 780px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.95fr) minmax(0, 1.05fr);
+  align-items: stretch;
+  border-radius: 24px;
+  border: 1px solid rgba(37, 123, 102, 0.2);
+  background: linear-gradient(145deg, rgba(248, 254, 251, 0.95), rgba(238, 248, 242, 0.94));
+  box-shadow: 0 30px 64px rgba(31, 91, 75, 0.2);
+  overflow: hidden;
+}
+
+.auth-side:is(.scope-auth, .scope-auth *) {
+  padding: clamp(26px, 3vw, 38px) clamp(24px, 3vw, 36px);
+  background:
+    radial-gradient(circle at 16% 12%, rgba(62, 176, 146, 0.26), transparent 48%),
+    radial-gradient(circle at 80% 90%, rgba(221, 159, 89, 0.22), transparent 44%),
+    linear-gradient(160deg, rgba(233, 247, 240, 0.9), rgba(219, 239, 230, 0.72));
+  border-right: 1px solid rgba(71, 143, 123, 0.24);
+}
+
+.auth-kicker:is(.scope-auth, .scope-auth *) {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #27765f;
+}
+
+.auth-side h2:is(.scope-auth, .scope-auth *) {
+  margin: 0;
+  font-size: clamp(24px, 2.8vw, 34px);
+  color: #1e4f44;
+}
+
+.auth-desc:is(.scope-auth, .scope-auth *) {
+  margin-top: 14px;
+  line-height: 1.75;
+  color: #4f746b;
+}
+
+.auth-card:is(.scope-auth, .scope-auth *) {
+  width: min(100%, 520px);
+  justify-self: center;
+  align-self: center;
+  padding: clamp(22px, 3vw, 32px);
+  border-radius: 18px;
+  border: 1px solid rgba(81, 148, 129, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(244, 252, 247, 0.8));
+  box-shadow: 0 16px 34px rgba(38, 104, 86, 0.14);
+}
+
+.auth-form:is(.scope-auth, .scope-auth *) {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 430px);
+  margin: 0 auto;
+}
+
+.field-block:is(.scope-auth, .scope-auth *) {
+  display: grid;
+  gap: 6px;
+}
+
+.field-block label:is(.scope-auth, .scope-auth *) {
+  color: #315f54;
+  font-size: 13px;
+}
+
+.captcha-row:is(.scope-auth, .scope-auth *) {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.captcha-image:is(.scope-auth, .scope-auth *) {
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(73, 146, 125, 0.32);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.captcha-refresh:is(.scope-auth, .scope-auth *) {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+}
+
+.auth-submit:is(.scope-auth, .scope-auth *) {
+  margin-top: 6px;
+  min-height: 42px;
+}
+
+.auth-links:is(.scope-auth, .scope-auth *) {
+  margin-top: 12px;
+  color: #567c72;
+  font-size: 13px;
+}
+
+.auth-links a:is(.scope-auth, .scope-auth *) {
+  color: #1d856a;
+}
+
+@media (max-width: 900px) {
+  .auth-shell:is(.scope-auth, .scope-auth *) {
+    min-height: 100vh;
+    padding: 12px;
+  }
+
+  .auth-surface:is(.scope-auth, .scope-auth *) {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .auth-side:is(.scope-auth, .scope-auth *) {
+    border-right: 0;
+    border-bottom: 1px solid rgba(120, 198, 205, 0.2);
+    padding: 20px 18px;
+  }
+
+  .auth-card:is(.scope-auth, .scope-auth *) {
+    width: 100%;
+    padding: 20px 18px;
+  }
+
+  .captcha-row:is(.scope-auth, .scope-auth *) {
+    grid-template-columns: 1fr;
+  }
+
+  .captcha-refresh:is(.scope-auth, .scope-auth *),
+.captcha-image:is(.scope-auth, .scope-auth *) {
+    width: 100%;
+  }
+}
