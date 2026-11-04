@@ -1,0 +1,19 @@
+# Copy to runtime_config.yaml and adjust. Environment variables take precedence over this file.
+# Keep secrets (SECRET_KEY, database password) in environment variables, not in this file.
+
+app:
+  MAX_CONTENT_LENGTH: 10485760
+  TRAIN_MAX_CONTENT_LENGTH: 1073741824
+
+# Remove this section to use the default SQLite database (backend/trashdet.db).
+# The password is read from the MYSQL_PASSWORD environment variable.
+database:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  name: "trashdet"
+
+detect:
+  YOLO_CONF_THRESHOLD: 0.25
+  LEFT_HALF_ONLY: false
+  CAMERA_TIMEOUT_MS: 3000

@@ -1,0 +1,8 @@
+Database migrations (Flask-Migrate / Alembic).
+
+The app applies pending migrations automatically at startup.
+
+Manual commands (run inside backend/):
+    flask --app app:create_app db upgrade              # apply migrations
+    flask --app app:create_app db migrate -m "message"  # generate a migration after changing models
+    flask --app app:create_app db current              # show the current revision

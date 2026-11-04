@@ -1,0 +1,431 @@
+/* Styles for this page, scoped under .scope-robot-admin (converted from the Vue scoped <style>). */
+.robot-admin-page:is(.scope-robot-admin, .scope-robot-admin *) {
+  --panel-bg: rgba(255, 255, 255, 0.84);
+  --panel-border: rgba(255, 255, 255, 0.46);
+  --ink-strong: #13263d;
+  --ink-soft: #556579;
+  --brand: #0f8b8d;
+  --brand-deep: #136f80;
+  --accent: #f4a261;
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 120px);
+  min-height: 640px;
+  font-family: 'Noto Sans SC', 'Microsoft YaHei UI', 'PingFang SC', sans-serif;
+}
+
+.map-toolbar:is(.scope-robot-admin, .scope-robot-admin *) {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 600;
+  width: min(760px, calc(100% - 24px));
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), var(--panel-bg));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 18px 36px rgba(16, 37, 63, 0.18);
+  display: grid;
+  gap: 10px;
+}
+
+.toolbar-title:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink-strong);
+  letter-spacing: 0.02em;
+}
+
+.toolbar-row:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr) auto auto;
+  gap: 8px;
+}
+
+.toolbar-input:is(.scope-robot-admin, .scope-robot-admin *) {
+  min-height: 40px;
+}
+
+.toolbar-sub:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.robot-map-full:is(.scope-robot-admin, .scope-robot-admin *) {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.square-btn:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 90px;
+  padding: 0 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  background: linear-gradient(140deg, var(--brand), var(--brand-deep));
+  color: #ffffff;
+  font-weight: 700;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+}
+
+.square-btn:hover:is(.scope-robot-admin, .scope-robot-admin *) {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 9px 18px rgba(15, 139, 141, 0.26);
+}
+
+.square-btn:active:is(.scope-robot-admin, .scope-robot-admin *) {
+  transform: translateY(0);
+}
+
+.square-btn-active:is(.scope-robot-admin, .scope-robot-admin *) {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.66), 0 10px 20px rgba(19, 111, 128, 0.3);
+}
+
+.btn-ghost:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(16, 36, 60, 0.08);
+  border-color: rgba(16, 36, 60, 0.14);
+  color: var(--ink-strong);
+}
+
+.btn-ghost:hover:is(.scope-robot-admin, .scope-robot-admin *) {
+  box-shadow: 0 10px 20px rgba(12, 37, 63, 0.14);
+}
+
+.marker-context-menu:is(.scope-robot-admin, .scope-robot-admin *) {
+  position: fixed;
+  z-index: 1000;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(236, 247, 247, 0.95));
+  box-shadow: 0 18px 30px rgba(12, 37, 63, 0.2);
+  min-width: 156px;
+}
+
+.editor-drawer:is(.scope-robot-admin, .scope-robot-admin *) {
+  position: absolute;
+  top: 120px;
+  right: 12px;
+  bottom: 12px;
+  width: min(440px, calc(100% - 24px));
+  z-index: 700;
+  border-radius: 16px;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(248, 252, 252, 0.95));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 22px 36px rgba(13, 40, 70, 0.26);
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  overflow: hidden;
+  animation: drawer-in 0.26s ease;
+}
+
+.drawer-head:is(.scope-robot-admin, .scope-robot-admin *) {
+  padding: 12px;
+  border-bottom: 1px solid rgba(15, 36, 61, 0.08);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.drawer-identity:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: grid;
+  gap: 4px;
+}
+
+.drawer-title:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink-strong);
+}
+
+.drawer-subtitle:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.drawer-meta-row:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-chip:is(.scope-robot-admin, .scope-robot-admin *),
+.meta-chip:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.meta-chip:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(15, 139, 141, 0.12);
+  color: #0d5f61;
+}
+
+.drawer-mode-switch:is(.scope-robot-admin, .scope-robot-admin *) {
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid rgba(15, 36, 61, 0.08);
+}
+
+.drawer-body:is(.scope-robot-admin, .scope-robot-admin *) {
+  padding: 12px;
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+}
+
+.robot-quick-grid:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-card-wide:is(.scope-robot-admin, .scope-robot-admin *) {
+  grid-column: span 2;
+}
+
+.quick-card:is(.scope-robot-admin, .scope-robot-admin *) {
+  border: 1px solid rgba(15, 36, 61, 0.08);
+  border-radius: 12px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  display: grid;
+  gap: 4px;
+}
+
+.quick-label:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.quick-value:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-strong);
+}
+
+.quick-address-value:is(.scope-robot-admin, .scope-robot-admin *) {
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.quick-subvalue:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 11px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.drawer-actions:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.robot-actions:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.robot-actions .square-btn:is(.scope-robot-admin, .scope-robot-admin *) {
+  width: 100%;
+  min-width: 0;
+}
+
+.robot-action-btn:is(.scope-robot-admin, .scope-robot-admin *) {
+  box-sizing: border-box;
+  height: 42px;
+  min-height: 42px;
+  line-height: 1;
+}
+
+.task-drawer-body:is(.scope-robot-admin, .scope-robot-admin *) {
+  align-content: start;
+}
+
+.task-map-tools:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.task-map-hint:is(.scope-robot-admin, .scope-robot-admin *) {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.task-textarea-head:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  color: #304559;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-textarea:is(.scope-robot-admin, .scope-robot-admin *) {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.task-editing-tip:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 12px;
+  color: #0d7f5a;
+}
+
+.task-action-feedback:is(.scope-robot-admin, .scope-robot-admin *) {
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-action-info:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1e40af;
+}
+
+.task-action-success:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(16, 185, 129, 0.14);
+  color: #0f6f52;
+}
+
+.task-action-warning:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+}
+
+.task-action-error:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(239, 68, 68, 0.14);
+  color: #991b1b;
+}
+
+.task-list-wrap:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: grid;
+  gap: 8px;
+}
+
+.task-list-item:is(.scope-robot-admin, .scope-robot-admin *) {
+  border: 1px solid rgba(15, 36, 61, 0.1);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  display: grid;
+  gap: 6px;
+}
+
+.task-item-head:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-item-name:is(.scope-robot-admin, .scope-robot-admin *) {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+.task-item-status:is(.scope-robot-admin, .scope-robot-admin *) {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.task-item-meta:is(.scope-robot-admin, .scope-robot-admin *) {
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.task-item-actions:is(.scope-robot-admin, .scope-robot-admin *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.status-online:is(.scope-robot-admin, .scope-robot-admin *),
+.status-running:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(16, 185, 129, 0.16);
+  color: #0d7d5b;
+}
+
+.status-offline:is(.scope-robot-admin, .scope-robot-admin *),
+.status-paused:is(.scope-robot-admin, .scope-robot-admin *),
+.status-planned:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(148, 163, 184, 0.2);
+  color: #344557;
+}
+
+.status-error:is(.scope-robot-admin, .scope-robot-admin *),
+.status-cancelled:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(239, 68, 68, 0.18);
+  color: #a12424;
+}
+
+.status-done:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(79, 70, 229, 0.16);
+  color: #3f3cbb;
+}
+
+.status-unknown:is(.scope-robot-admin, .scope-robot-admin *) {
+  background: rgba(15, 36, 61, 0.1);
+  color: #304559;
+}
+
+@keyframes drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .robot-admin-page:is(.scope-robot-admin, .scope-robot-admin *) {
+    height: calc(100vh - 96px);
+  }
+
+  .toolbar-row:is(.scope-robot-admin, .scope-robot-admin *) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .editor-drawer:is(.scope-robot-admin, .scope-robot-admin *) {
+    top: 180px;
+    width: calc(100% - 24px);
+  }
+
+  .robot-quick-grid:is(.scope-robot-admin, .scope-robot-admin *) {
+    grid-template-columns: 1fr;
+  }
+
+  .robot-actions:is(.scope-robot-admin, .scope-robot-admin *) {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-card-wide:is(.scope-robot-admin, .scope-robot-admin *) {
+    grid-column: span 1;
+  }
+}

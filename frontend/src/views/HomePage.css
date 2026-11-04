@@ -1,0 +1,161 @@
+/* Styles for this page, scoped under .scope-home (converted from the Vue scoped <style>). */
+.home-page:is(.scope-home, .scope-home *) {
+  width: 100%;
+  height: calc(100vh - 120px);
+  min-height: 640px;
+}
+
+.home-map-stage:is(.scope-home, .scope-home *) {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.home-map:is(.scope-home, .scope-home *) {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.home-float-panel:is(.scope-home, .scope-home *) {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 500;
+  width: min(420px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  display: grid;
+  gap: 10px;
+  overflow: auto;
+}
+
+.home-overlay-panel:is(.scope-home, .scope-home *) {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+}
+
+.home-overlay-body:is(.scope-home, .scope-home *) {
+  padding: 10px;
+}
+
+.home-donut-chart:is(.scope-home, .scope-home *) {
+  width: 100%;
+  height: 220px;
+}
+
+.home-table-body:is(.scope-home, .scope-home *) {
+  display: grid;
+  gap: 10px;
+}
+
+.home-status-summary:is(.scope-home, .scope-home *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-status-pill:is(.scope-home, .scope-home *) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(31, 142, 115, 0.1);
+  color: #1d5f50;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.home-status-pill-online:is(.scope-home, .scope-home *) {
+  background: rgba(31, 142, 115, 0.16);
+  color: #0f7d5d;
+}
+
+.home-status-table-wrap:is(.scope-home, .scope-home *) {
+  max-height: 260px;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(36, 108, 91, 0.14);
+}
+
+.home-status-table:is(.scope-home, .scope-home *) {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+}
+
+.home-status-table thead th:is(.scope-home, .scope-home *) {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 9px 10px;
+  text-align: left;
+  background: rgba(240, 248, 243, 0.98);
+  color: #1d554a;
+  border-bottom: 1px solid rgba(36, 108, 91, 0.16);
+}
+
+.home-status-table tbody td:is(.scope-home, .scope-home *) {
+  padding: 9px 10px;
+  color: #315950;
+  border-bottom: 1px solid rgba(36, 108, 91, 0.08);
+}
+
+.home-status-table tbody tr:hover:is(.scope-home, .scope-home *) {
+  background: rgba(47, 133, 111, 0.07);
+}
+
+.home-empty-row:is(.scope-home, .scope-home *) {
+  text-align: center;
+  color: #5a726d;
+}
+
+@media (max-width: 900px) {
+  .home-page:is(.scope-home, .scope-home *) {
+    height: calc(100vh - 112px);
+    min-height: 560px;
+  }
+
+  .home-float-panel:is(.scope-home, .scope-home *) {
+    width: min(360px, calc(100% - 20px));
+    top: 10px;
+    left: 10px;
+    max-height: calc(100% - 20px);
+  }
+
+  .home-donut-chart:is(.scope-home, .scope-home *) {
+    height: 180px;
+  }
+
+  .home-status-table-wrap:is(.scope-home, .scope-home *) {
+    max-height: 220px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-page:is(.scope-home, .scope-home *) {
+    height: calc(100vh - 104px);
+    min-height: 520px;
+  }
+
+  .home-float-panel:is(.scope-home, .scope-home *) {
+    width: calc(100% - 16px);
+    top: 8px;
+    left: 8px;
+    max-height: calc(100% - 16px);
+  }
+
+  .home-overlay-body:is(.scope-home, .scope-home *) {
+    padding: 8px;
+  }
+
+  .home-donut-chart:is(.scope-home, .scope-home *) {
+    height: 160px;
+  }
+
+  .home-status-table:is(.scope-home, .scope-home *) {
+    font-size: 11px;
+  }
+}

@@ -1,0 +1,55 @@
+/* Styles for this page, scoped under .scope-stats (converted from the Vue scoped <style>). */
+.stats-card .section-title:is(.scope-stats, .scope-stats *) {
+  color: #111827;
+}
+
+.forecast-meta-item span:is(.scope-stats, .scope-stats *),
+.forecast-meta-item strong:is(.scope-stats, .scope-stats *) {
+  color: #111827;
+}
+
+.forecast-meta-item strong:is(.scope-stats, .scope-stats *) {
+  font-weight: 800;
+}
+
+.hotspot-prob-list:is(.scope-stats, .scope-stats *) {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.hotspot-prob-item:is(.scope-stats, .scope-stats *) {
+  border-radius: 10px;
+  border: 1px solid rgba(25, 84, 71, 0.22);
+  background: #ffffff;
+  padding: 10px;
+}
+
+.hotspot-prob-main:is(.scope-stats, .scope-stats *) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hotspot-prob-area:is(.scope-stats, .scope-stats *) {
+  color: #111827;
+  font-weight: 700;
+}
+
+.hotspot-prob-rate:is(.scope-stats, .scope-stats *) {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 10px;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(141, 196, 176, 0.24);
+}
+
+.hotspot-prob-sub:is(.scope-stats, .scope-stats *) {
+  margin-top: 6px;
+  color: #1f2937;
+  font-size: 13px;
+}

@@ -1,0 +1,28 @@
+# Web 框架与数据库
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate>=4.0.0
+Flask-Login>=0.6.3
+Werkzeug>=3.0.0
+SQLAlchemy>=2.0.0
+
+# 深度学习与视觉 (核心)
+ultralytics==8.4.48
+# PyTorch：默认安装 CPU/通用版本。需要 CUDA 时请按 https://pytorch.org/get-started/locally/ 先单独安装对应版本
+torch>=2.2.0
+torchvision>=0.17.0
+numpy>=1.26.4           # 适配高版本 Python
+opencv-python>=4.8.0
+Pillow>=10.0.0
+scipy>=1.11.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# 通用工具
+gunicorn>=21.2.0
+python-dotenv>=1.0.0
+PyYAML>=6.0.0
+pymysql>=1.1.0
+requests>=2.31.0

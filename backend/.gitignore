@@ -1,0 +1,46 @@
+static/uploads/*
+!static/uploads/.gitkeep
+
+static/results/*
+!static/results/.gitkeep
+
+*.db
+
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.python-version
+
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+
+dist/
+build/
+*.egg-info/
+
+# Training outputs created by /api/train (the shipped model in model/runs/ is kept)
+/runs/
+data/training/
+
+# Only keep best.pt and the result plots of the shipped model
+model/runs/**/last.pt
+model/runs/**/events.out.tfevents.*
+
+# Local config with real credentials (runtime_config.example.yaml is the template)
+runtime_config.yaml
+
+logs/
+*.log
+*.log.*
+
+.vscode/*
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local secrets (.env.example is the template)
+.env

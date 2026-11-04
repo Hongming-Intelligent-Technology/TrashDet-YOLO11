@@ -1,0 +1,16 @@
+# Lightweight dependencies for running the test suite and linters (no torch/ultralytics/opencv).
+# The app degrades gracefully without the ML stack, and tests mock the detector.
+# Full runtime dependencies: requirements.txt
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate>=4.0.0
+Flask-Login>=0.6.3
+Werkzeug>=3.0.0
+SQLAlchemy>=2.0.0
+numpy>=1.26.4
+Pillow>=10.0.0
+PyYAML>=6.0.0
+requests>=2.31.0
+
+pytest>=8.0.0
+ruff>=0.6.0
