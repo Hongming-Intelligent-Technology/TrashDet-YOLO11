@@ -3,6 +3,8 @@
 TrashDet-YOLO11 is a YOLO11-based project for trash detection.
 It uses the [Ultralytics](https://github.com/ultralytics/ultralytics) package as a dependency and provides a simple custom training entrypoint in train.py.
 
+![Training batch with labels](assets/train_batch.jpg)
+
 ## Overview
 
 - Base framework: Ultralytics YOLO (installed via pip, pinned in requirements.txt)
@@ -88,6 +90,12 @@ yolo detect train data=/path/to/trash.yaml model=yolo11n.pt epochs=100 imgsz=640
 
 ## Inference
 
+### Script
+
+```bash
+python predict.py --weights best.pt --source /path/to/image_or_video
+```
+
 ### CLI
 
 ```bash
@@ -121,6 +129,7 @@ yolo export model=runs/train/trash-yolo11n/weights/best.pt format=onnx
 ## Project Layout
 
 - train.py: custom training entrypoint
+- predict.py: inference script
 - data/trash.yaml: dataset config
 - assets/: demo and result images
 - requirements.txt: pinned dependencies
