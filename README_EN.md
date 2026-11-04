@@ -126,6 +126,8 @@ Common settings:
 Important:
 - `runtime_config.example.yaml` uses MySQL (`trashdet`); set the password via the `MYSQL_PASSWORD` environment variable.
 - Set `SECRET_KEY` as an environment variable, never in the config file.
+- With MySQL, create the database first (tables are created by the migrations): `CREATE DATABASE trashdet CHARACTER SET utf8mb4;`
+- Back up the database before upgrading (`mysqldump trashdet > backup.sql`); MySQL schema changes cannot be rolled back.
 - If that DB does not exist locally, switch to SQLite URI or remove MySQL entries.
 
 ## Core APIs

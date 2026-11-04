@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
+from sqlalchemy import Double, String, event
 from database.db import db
 from flask_login import UserMixin
 import werkzeug.security as security
@@ -12,7 +13,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(255), nullable=False)
     security_code = db.Column(db.String(255), nullable=False)
     organization = db.Column(db.String(120), nullable=True)
-    role = db.Column(db.String(20), default='user')
+    role = db.Column(db.String(20), nullable=False, default='user', server_default='user')
 
     if TYPE_CHECKING:
         def __init__(
@@ -59,15 +60,20 @@ class DetectTask(db.Model):
     source_path = db.Column(db.String(255))
     result_path = db.Column(db.String(255), nullable=True)
     device_id = db.Column(db.String(50), nullable=True)
-    location = db.Column(db.String(100), nullable=True)
+    location = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default='PENDING')
     error_msg = db.Column(db.Text, nullable=True)
-    user_id = db.Column(db.Integer, nullable=True, index=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='SET NULL', name='fk_detection_tasks_user_id'),
+        nullable=True,
+        index=True,
+    )
     created_at = db.Column(db.DateTime, default=datetime.now, index=True)
-    latitude = db.Column(db.Float, nullable=True, index=True)
-    longitude = db.Column(db.Float, nullable=True)
+    latitude = db.Column(Double, nullable=True, index=True)
+    longitude = db.Column(Double, nullable=True)
 
-    items = db.relationship('DetectItem', backref='task', lazy=True)
+    items = db.relationship('DetectItem', backref='task', lazy=True, cascade='all, delete-orphan')
 
     if TYPE_CHECKING:
         def __init__(
@@ -108,7 +114,12 @@ class DetectItem(db.Model):
     __tablename__ = 'detection_items'
 
     id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('detection_tasks.id'), index=True)
+    task_id = db.Column(
+        db.Integer,
+        db.ForeignKey('detection_tasks.id', ondelete='CASCADE', name='fk_detection_items_task_id'),
+        nullable=False,
+        index=True,
+    )
     label = db.Column(db.String(50), index=True)
     confidence = db.Column(db.Float)
     x1 = db.Column(db.Integer)
@@ -146,7 +157,7 @@ class OpsLog(db.Model):
     __tablename__ = 'operation_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL', name='fk_operation_logs_user_id'))
     action = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.now)
 
@@ -169,6 +180,9 @@ class TrainJob(db.Model):
 
 class RobotPatrolTask(db.Model):
     __tablename__ = 'robot_patrol_tasks'
+    __table_args__ = (
+        db.Index('ix_robot_patrol_tasks_robot_id_status', 'robot_id', 'status'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     robot_id = db.Column(db.Integer, db.ForeignKey('robots.id', ondelete='CASCADE'), nullable=False, index=True)
@@ -177,7 +191,12 @@ class RobotPatrolTask(db.Model):
     planned_path = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default='PLANNED', nullable=False)
     current_waypoint_index = db.Column(db.Integer, default=0, nullable=False)
-    created_by_user_id = db.Column(db.Integer, nullable=True, index=True)
+    created_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='SET NULL', name='fk_robot_patrol_tasks_created_by_user_id'),
+        nullable=True,
+        index=True,
+    )
     created_at = db.Column(db.DateTime, default=datetime.now, index=True)
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
@@ -205,13 +224,18 @@ class Robot(db.Model):
     name = db.Column(db.String(100))
     status = db.Column(db.String(20), default='OFFLINE')
     ip_address = db.Column(db.String(50))
-    owner_user_id = db.Column(db.Integer, nullable=True, index=True)
+    owner_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='SET NULL', name='fk_robots_owner_user_id'),
+        nullable=True,
+        index=True,
+    )
 
-    current_lat = db.Column(db.Float, nullable=True)
-    current_lng = db.Column(db.Float, nullable=True)
+    current_lat = db.Column(Double, nullable=True)
+    current_lng = db.Column(Double, nullable=True)
 
-    target_lat = db.Column(db.Float, nullable=True)
-    target_lng = db.Column(db.Float, nullable=True)
+    target_lat = db.Column(Double, nullable=True)
+    target_lng = db.Column(Double, nullable=True)
 
     last_heartbeat = db.Column(db.DateTime, default=datetime.now)
     next_command = db.Column(db.String(100), default='IDLE')
@@ -241,3 +265,22 @@ class Robot(db.Model):
             created_at: datetime | None = None,
             **kwargs: Any,
         ) -> None: ...
+
+
+def _truncate_string_columns(mapper, _connection, target):
+    """Cut str values to their column length before writing.
+
+    MySQL in strict mode rejects over-long values and fails the whole request;
+    values from devices (ingest payloads, custom commands) are not length-checked.
+    """
+    for column in mapper.columns:
+        length = getattr(column.type, 'length', None)
+        if not isinstance(column.type, String) or not length:
+            continue
+        value = getattr(target, column.key, None)
+        if isinstance(value, str) and len(value) > length:
+            setattr(target, column.key, value[:length])
+
+
+event.listen(db.Model, 'before_insert', _truncate_string_columns, propagate=True)
+event.listen(db.Model, 'before_update', _truncate_string_columns, propagate=True)

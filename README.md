@@ -126,6 +126,8 @@ npm run build
 注意：
 - `runtime_config.example.yaml` 示例是 MySQL（`trashdet`），数据库密码请通过环境变量 `MYSQL_PASSWORD` 设置。
 - `SECRET_KEY` 请通过环境变量设置，不要写入配置文件。
+- 使用 MySQL 时需先创建数据库（表由迁移自动创建）：`CREATE DATABASE trashdet CHARACTER SET utf8mb4;`
+- 升级到新版本前请先备份数据库（`mysqldump trashdet > backup.sql`），MySQL 的表结构变更无法回滚。
 - 若本地没有对应库，可改为 SQLite URI，或移除 MySQL 配置段。
 
 ## 主要接口

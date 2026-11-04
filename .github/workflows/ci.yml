@@ -30,6 +30,38 @@ jobs:
       - name: Test
         run: python -m pytest -q test
 
+  backend-mysql:
+    # Migration tests against a real MySQL server (fresh, old-app and legacy database.sql schemas).
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: trashdet_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt pymysql cryptography
+      - name: Test migrations on MySQL
+        env:
+          MYSQL_TEST_URL: mysql+pymysql://root:root@127.0.0.1:3306/trashdet_test
+        run: python -m pytest -q test/test_migrations_mysql.py
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
