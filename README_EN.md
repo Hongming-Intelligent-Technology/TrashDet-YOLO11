@@ -71,7 +71,7 @@ EcoGuard/
 ```bash
 cd backend
 pip install -r requirements.txt
-cp runtime_config.example.yaml runtime_config.yaml  # optional
+cp .env.example .env  # fill in SECRET_KEY etc.
 python app.py
 ```
 
@@ -108,8 +108,9 @@ Build artifacts are written to `backend/static/spa` and served by the backend.
 
 Backend config precedence:
 1. Environment variables
-2. `backend/runtime_config.yaml`
-3. Defaults in `backend/config.py`
+2. `backend/.env` (copy from `backend/.env.example`; holds SECRET_KEY, DB password, etc.)
+3. `backend/runtime_config.yaml` (copy from `runtime_config.example.yaml`)
+4. Defaults in `backend/config.py`
 
 Common settings:
 - `SQLALCHEMY_DATABASE_URI` / `DATABASE_URL`

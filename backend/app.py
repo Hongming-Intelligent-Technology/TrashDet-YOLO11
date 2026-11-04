@@ -64,10 +64,12 @@ def _mask_database_uri(database_uri):
     return mask_database_uri(database_uri)
 
 
-def create_app():
+def create_app(config_overrides=None):
     app = Flask(__name__)
     app.config.from_object(Config)
     app.config.update(load_yaml_runtime_overrides(app.config.get('BASE_DIR')))
+    if config_overrides:
+        app.config.update(config_overrides)
 
     train_max_content_length = app.config.get('TRAIN_MAX_CONTENT_LENGTH')
     max_content_length = app.config.get('MAX_CONTENT_LENGTH')

@@ -71,7 +71,7 @@ TrashDet-YOLO11/
 ```bash
 cd backend
 pip install -r requirements.txt
-cp runtime_config.example.yaml runtime_config.yaml  # 可选
+cp .env.example .env  # 填写 SECRET_KEY 等
 python app.py
 ```
 
@@ -108,8 +108,9 @@ npm run build
 
 后端配置优先级：
 1. 环境变量
-2. `backend/runtime_config.yaml`
-3. `backend/config.py` 默认值
+2. `backend/.env`（从 `backend/.env.example` 复制，用于存放 SECRET_KEY、数据库密码等）
+3. `backend/runtime_config.yaml`（从 `runtime_config.example.yaml` 复制）
+4. `backend/config.py` 默认值
 
 常用项：
 - `SQLALCHEMY_DATABASE_URI` / `DATABASE_URL`

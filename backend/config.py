@@ -6,9 +6,19 @@ try:
 except ImportError:
     yaml = None
 
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
+# Load backend/.env (if present) before Config reads the environment.
+# Variables already set in the real environment are not overridden.
+if load_dotenv is not None:
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"), override=False)
+
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "change-this-to-a-random-secret")
+    SECRET_KEY = os.getenv("SECRET_KEY") or "change-this-to-a-random-secret"
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
